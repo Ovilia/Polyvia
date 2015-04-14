@@ -4,12 +4,14 @@ var sass        = require('gulp-sass');
 var prefix      = require('gulp-autoprefixer');
 var cp          = require('child_process');
 var scsslint    = require('gulp-scsslint');
+var jade        = require('gulp-jade');
 
 /**
  * Launch the Server
  */
 gulp.task('browser-sync', ['sass'], function() {
     gulp.run('vendor');
+    gulp.run('jade');
     browserSync({
         server: {
             baseDir: '.'
@@ -52,12 +54,21 @@ gulp.task('lint', function() {
 });
 
 /**
+ * Generate site using Jade
+ */
+gulp.task('jade', function() {
+    gulp.src('*.jade')
+        .pipe(jade())
+        .pipe(gulp.dest('.'))
+});
+
+/**
  * Watch scss files for changes & recompile
  * Watch html/md files, run jekyll & reload BrowserSync
  */
 gulp.task('watch', function () {
     gulp.watch('_scss/*.scss', ['sass']);
-    gulp.watch(['*.html', 'js/*', 'css/*']);
+    gulp.watch(['*.jade', 'js/*', 'css/*']);
 });
 
 /**
