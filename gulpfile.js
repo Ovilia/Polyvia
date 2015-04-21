@@ -3,7 +3,6 @@ var browserSync = require('browser-sync');
 var sass        = require('gulp-sass');
 var prefix      = require('gulp-autoprefixer');
 var cp          = require('child_process');
-var scsslint    = require('gulp-scsslint');
 var jade        = require('gulp-jade');
 
 /**
@@ -24,7 +23,8 @@ gulp.task('browser-sync', ['sass'], function() {
  */
 gulp.task('vendor', function() {
     gulp.src(['bower_components/jquery/dist/jquery.min.js',
-            'bower_components/jquery/dist/jquery.min.map'])
+            'bower_components/jquery/dist/jquery.min.map',
+            'bower_components/delaunay-fast/delaunay.js'])
         .pipe(gulp.dest('vendor'));
 });
 
@@ -32,25 +32,18 @@ gulp.task('vendor', function() {
  * Compile files from _scss into css
  */
 gulp.task('sass', function () {
-    gulp.run('lint');
     return gulp.src('_scss/main.scss')
         .pipe(sass({
             includePaths: ['scss'],
-            onError: browserSync.notify,
+            onError: function(e) {
+                browserSync.notify();
+                process.stdout.write(e + '\n');
+            },
             outputStyle: 'compressed'
         }))
         .pipe(prefix(['last 15 versions', '> 1%', 'ie 8', 'ie 7'], { cascade: true }))
         .pipe(browserSync.reload({stream:true}))
         .pipe(gulp.dest('css'));
-});
-
-/**
- * Generate sass lint report
- */
-gulp.task('lint', function() {
-    gulp.src('_scss/*.scss')
-        .pipe(scsslint())
-        .pipe(scsslint.reporter());
 });
 
 /**
@@ -60,6 +53,7 @@ gulp.task('jade', function() {
     gulp.src('*.jade')
         .pipe(jade())
         .pipe(gulp.dest('.'))
+        .pipe(browserSync.reload({stream:true}))
 });
 
 /**
@@ -68,7 +62,7 @@ gulp.task('jade', function() {
  */
 gulp.task('watch', function () {
     gulp.watch('_scss/*.scss', ['sass']);
-    gulp.watch(['*.jade', 'js/*', 'css/*']);
+    gulp.watch(['*.jade', 'js/*', 'css/*'], ['jade']);
 });
 
 /**
