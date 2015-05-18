@@ -17,6 +17,7 @@
   ],
   "dependencies": {
     "jquery": "~1.11.1",
-    "delaunay-fast": "*"
+    "delaunay-fast": "*",
+    "seajs": "~2.2.3"
   }
 }

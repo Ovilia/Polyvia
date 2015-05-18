@@ -4,6 +4,7 @@ var sass        = require('gulp-sass');
 var prefix      = require('gulp-autoprefixer');
 var cp          = require('child_process');
 var jade        = require('gulp-jade');
+var seajs       = require('gulp-seajs');
 
 /**
  * Launch the Server
@@ -24,7 +25,8 @@ gulp.task('browser-sync', ['sass'], function() {
 gulp.task('vendor', function() {
     gulp.src(['bower_components/jquery/dist/jquery.min.js',
             'bower_components/jquery/dist/jquery.min.map',
-            'bower_components/delaunay-fast/delaunay.js'])
+            'bower_components/delaunay-fast/delaunay.js',
+            'bower_components/seajs/dist/sea-debug.js'])
         .pipe(gulp.dest('vendor'));
 });
 

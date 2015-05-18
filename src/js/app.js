@@ -1,3 +1,8 @@
+// Set configuration
+seajs.config({
+    base: "../sea-modules/"
+});
+
 var canvas = document.getElementById("canvas"),
     ctx = canvas.getContext("2d"),
         vertices = new Array(2048),

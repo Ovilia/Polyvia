@@ -44,5 +44,3 @@
 Fast Delaunay Triangulation in JavaScript.
 
 https://github.com/ironwallaby/delaunay
-
-
