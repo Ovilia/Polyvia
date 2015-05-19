@@ -20,11 +20,8 @@ define(function(require, exports, module) {
             that.render();
         };
 
-        // options
-        // TODO: extends options neatly
-        this.options = options || {
-            vertexCnt: 1000
-        };
+        // set options
+        this.set(options);
     };
 
     module.exports = Polyvia;
@@ -37,13 +34,18 @@ define(function(require, exports, module) {
 
 
 
+    Polyvia.prototype.set = function(options) {
+        // TODO: extends options neatly
+        this.options = options || {
+            vertexCnt: 1000
+        };
+    }
+
+
+
     Polyvia.prototype.getVertices = function() {
         // coordinate of vertexes are calculated in 
-        // (w, h) belonging to ([0, 1], [0, imgHeight / imgWidth])
-        var imgWidth = this.srcImg.width;
-        var imgHeight = this.srcImg.height;
-        var maxWidth = imgWidth ? 1 : 0;
-        var maxHeight = imgWidth ? imgHeight / imgWidth : 0;
+        // (w, h) belonging to ([0, 1], [0, 1])
 
         // TODO: compute vertexes according to pixel color
 

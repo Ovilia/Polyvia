@@ -8,14 +8,14 @@ html(lang="en")
     canvas(id='canvas')
 
     script(type='text/javascript', src='vendor/sea-debug.js')
-    script(type='text/javascript', src='vendor/delaunay.js')
     script(type='text/javascript').
         // set sea.js configuration
         seajs.config({
             base: './src/js',
             alias: {
                 'jquery': '../../vendor/jquery.min.js',
-                'delaunay': '../../vendor/delaunay.js'
+                'delaunay': '../../vendor/delaunay.js',
+                'gui': '../../vendor/dat.gui.js'
             }
         });
 

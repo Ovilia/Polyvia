@@ -18,6 +18,7 @@
   "dependencies": {
     "jquery": "~1.11.1",
     "delaunay-fast": "*",
-    "seajs": "~2.2.3"
+    "seajs": "~2.2.3",
+    "dat-gui": "~0.5.0"
   }
 }
