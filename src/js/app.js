@@ -1,8 +1,9 @@
 define(function(require, exports, module) {
+    var img = './src/img/tmp.png';
+    var ctx = document.getElementById("canvas").getContext("2d");
+
     var Polyvia = require('Polyvia');
-
-    p = new Polyvia();
-
+    var p = new Polyvia(img, ctx);
 });
 
 // var canvas = document.getElementById("canvas"),
