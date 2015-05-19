@@ -2,17 +2,20 @@ doctype html
 html(lang="en")
   head
     title= pageTitle
+    link(href='src/css/app.css', type='text/css', rel='stylesheet')
+
   body
-    canvas(id='canvas', width='1024', height='1024')
+    canvas(id='canvas')
 
     script(type='text/javascript', src='vendor/sea-debug.js')
     script(type='text/javascript', src='vendor/delaunay.js')
     script(type='text/javascript').
-        // Set configuration
+        // set sea.js configuration
         seajs.config({
             base: './src/js',
             alias: {
-                "jquery": "./vendor/jquery.min.js"
+                'jquery': '../../vendor/jquery.min.js',
+                'delaunay': '../../vendor/delaunay.js'
             }
         });
 

@@ -1,8 +1,9 @@
-<!DOCTYPE html><html lang="en"><head><title></title></head><body><canvas id="canvas" width="1024" height="1024"></canvas><script type="text/javascript" src="vendor/sea-debug.js"></script><script type="text/javascript" src="vendor/delaunay.js"></script><script type="text/javascript">// Set configuration
+<!DOCTYPE html><html lang="en"><head><title></title><link href="src/css/app.css" type="text/css" rel="stylesheet"></head><body><canvas id="canvas"></canvas><script type="text/javascript" src="vendor/sea-debug.js"></script><script type="text/javascript" src="vendor/delaunay.js"></script><script type="text/javascript">// set sea.js configuration
 seajs.config({
     base: './src/js',
     alias: {
-        "jquery": "./vendor/jquery.min.js"
+        'jquery': '../../vendor/jquery.min.js',
+        'delaunay': '../../vendor/delaunay.js'
     }
 });
 
