@@ -7,4 +7,13 @@ html(lang="en")
 
     script(type='text/javascript', src='vendor/sea-debug.js')
     script(type='text/javascript', src='vendor/delaunay.js')
-    script(type='text/javascript', src='src/js/app.js')
+    script(type='text/javascript').
+        // Set configuration
+        seajs.config({
+            base: './src/js',
+            alias: {
+                "jquery": "./vendor/jquery.min.js"
+            }
+        });
+
+        seajs.use('./src/js/app.js');
