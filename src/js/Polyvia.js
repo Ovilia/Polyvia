@@ -7,8 +7,9 @@ define(function(require, exports, module) {
 
     var PRenderer = require('PRenderer');
 
+    require('tracking');
+
     function Polyvia(imgPath, canvas, options) {
-        console.log('Polyvia init.');
         var that = this;
 
         this.renderer = new PRenderer(canvas);
@@ -37,7 +38,8 @@ define(function(require, exports, module) {
     Polyvia.prototype.set = function(options) {
         // TODO: extends options neatly
         this.options = options || {
-            vertexCnt: 1000
+            vertexCnt: 1000,
+            edgeWeight: 9
         };
     }
 
@@ -47,12 +49,32 @@ define(function(require, exports, module) {
         // coordinate of vertexes are calculated in 
         // (w, h) belonging to ([0, 1], [0, 1])
 
-        // TODO: compute vertexes according to pixel color
+        // calculate corners
+        tracking.Fast.THRESHOLD = 10;
+        var canvas = document.createElement('canvas');
+        var w = this.srcImg.width;
+        var h = this.srcImg.height;
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(this.srcImg, 0, 0, w, h);
+        var imageData = ctx.getImageData(0, 0, w, h);
+        this.grayImage = tracking.Image.grayscale(imageData.data, w, h);
+        var corners = tracking.Fast.findCorners(this.grayImage, w, h);
 
+        // push corner vertices into vertex arrary
         this.vertexArr = [[0, 0], [1, 0], [0, 1], [1, 1]];
-        var len = this.options.vertexCnt - 4; // four corners pushed already
-        for (var i = 0; i < len; ++i) {
-            this.vertexArr.push([Math.random(), Math.random()]);
+        var cCnt = corners.length / 2;
+        var vCnt = this.options.vertexCnt - 4; // four corners pushed already
+        for (var i = 0; i < vCnt; ++i) {
+            var id = Math.floor(Math.random() * cCnt) * 2;
+            this.vertexArr.push([corners[id] / w, corners[id + 1] / h]);
+        }
+        if (vCnt > cCnt) {
+            // push more random vertices if corners are not enough
+            for (var i = 0; i < vCnt - cCnt; i++) {
+                this.vertexArr.push([Math.random(), Math.random()]);
+            };
         }
         return this.vertexArr;
     }

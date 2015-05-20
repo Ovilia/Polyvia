@@ -14,17 +14,21 @@ define(function(require, exports, module) {
     // dat.gui
     require('gui');
     var GuiConfig = function() {
-        this.VertexCnt = 1000;
-        this.Render = function() {
+        this['Vertex Cnt'] = 1000;
+
+        this['Edge Weight'] = 0.8;
+
+        this['Render Again'] = function() {
             polyvia.set({
-                vertexCnt: this.VertexCnt
+                vertexCnt: this['Vertex Cnt'],
+                edgeWeight: 41 - this['Edges Weight'] * 40
             });
             polyvia.render();
-            console.log(this.VertexCnt);
         };
     };
     var config = new GuiConfig();
     var gui = new dat.GUI();
-    gui.add(config, 'VertexCnt', 100, 10000).step(100);
-    gui.add(config, 'Render');
+    gui.add(config, 'Vertex Cnt', 100, 10000).step(100);
+    gui.add(config, 'Edge Weight', 0, 1).step(0.05);
+    gui.add(config, 'Render Again');
 });

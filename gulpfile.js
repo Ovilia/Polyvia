@@ -27,7 +27,8 @@ gulp.task('vendor', function() {
             'bower_components/jquery/dist/jquery.min.map',
             'bower_components/delaunay-fast/delaunay.js',
             'bower_components/seajs/dist/sea-debug.js',
-            'bower_components/dat-gui/build/dat.gui.js'])
+            'bower_components/dat-gui/build/dat.gui.js',
+            'bower_components/tracking.js/build/tracking.js'])
         .pipe(gulp.dest('vendor'));
 });
 
