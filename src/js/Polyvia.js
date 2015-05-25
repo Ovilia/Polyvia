@@ -59,8 +59,20 @@ define(function(require, exports, module) {
         var ctx = canvas.getContext('2d');
         ctx.drawImage(this.srcImg, 0, 0, w, h);
         var imageData = ctx.getImageData(0, 0, w, h);
-        this.grayImage = tracking.Image.grayscale(imageData.data, w, h);
-        var corners = tracking.Fast.findCorners(this.grayImage, w, h);
+
+        // edge detection
+        var sobel = tracking.Image.sobel(imageData.data, w, h);
+        var grayImage = tracking.Image.grayscale(sobel, w, h);
+        var threshold = 50;  // TODO
+        var corners = [];
+        for (var i = 0; i < h; ++i) {
+            for (var j = 0; j < w; ++j) {
+                if (grayImage[i * w + j] > threshold) {
+                    corners.push(j);
+                    corners.push(i);
+                }
+            }
+        }
 
         // push corner vertices into vertex arrary
         this.vertexArr = [[0, 0], [1, 0], [0, 1], [1, 1]];

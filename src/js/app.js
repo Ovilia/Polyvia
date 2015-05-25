@@ -11,6 +11,15 @@ define(function(require, exports, module) {
 
 
 
+    // event handling
+    window.onresize = function() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        polyvia.render();
+    }
+
+
+
     // dat.gui
     require('gui');
     var GuiConfig = function() {
@@ -28,7 +37,7 @@ define(function(require, exports, module) {
     };
     var config = new GuiConfig();
     var gui = new dat.GUI();
-    gui.add(config, 'Vertex Cnt', 100, 10000).step(100);
+    gui.add(config, 'Vertex Cnt', 100, 5000).step(100);
     gui.add(config, 'Edge Weight', 0, 1).step(0.05);
     gui.add(config, 'Render Again');
 });
