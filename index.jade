@@ -6,6 +6,7 @@ html(lang="en")
 
   body
     canvas(id='canvas')
+    img(id='source-img', src='src/img/faces.jpg')
 
     script(type='text/javascript', src='vendor/sea-debug.js')
     script(type='text/javascript').
@@ -16,7 +17,8 @@ html(lang="en")
                 'jquery': '../../vendor/jquery.min.js',
                 'delaunay': '../../vendor/delaunay.js',
                 'gui': '../../vendor/dat.gui.js',
-                'tracking': '../../vendor/tracking.js'
+                'tracking': '../../vendor/tracking.js',
+                'tracking-face': '../../vendor/face-min.js'
             }
         });
 

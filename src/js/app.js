@@ -1,5 +1,5 @@
 define(function(require, exports, module) {
-    var img = './src/img/18.jpg';
+    var img = './src/img/faces.jpg';
     var canvas = document.getElementById('canvas');
 
     // init canvas width to that of window
@@ -7,7 +7,7 @@ define(function(require, exports, module) {
     canvas.height = window.innerHeight;
 
     var Polyvia = require('Polyvia');
-    var polyvia = new Polyvia(img, canvas);
+    var polyvia = new Polyvia(img, 'source-img', canvas);
 
 
 

@@ -1,11 +1,12 @@
-<!DOCTYPE html><html lang="en"><head><title></title><link href="src/css/app.css" type="text/css" rel="stylesheet"></head><body><canvas id="canvas"></canvas><script type="text/javascript" src="vendor/sea-debug.js"></script><script type="text/javascript">// set sea.js configuration
+<!DOCTYPE html><html lang="en"><head><title></title><link href="src/css/app.css" type="text/css" rel="stylesheet"></head><body><canvas id="canvas"></canvas><img id="source-img" src="src/img/faces.jpg"><script type="text/javascript" src="vendor/sea-debug.js"></script><script type="text/javascript">// set sea.js configuration
 seajs.config({
     base: './src/js',
     alias: {
         'jquery': '../../vendor/jquery.min.js',
         'delaunay': '../../vendor/delaunay.js',
         'gui': '../../vendor/dat.gui.js',
-        'tracking': '../../vendor/tracking.js'
+        'tracking': '../../vendor/tracking.js',
+        'tracking-face': '../../vendor/face-min.js'
     }
 });
 

@@ -8,8 +8,9 @@ define(function(require, exports, module) {
     var PRenderer = require('PRenderer');
 
     require('tracking');
+    require('tracking-face');
 
-    function Polyvia(imgPath, canvas, options) {
+    function Polyvia(imgPath, imgId, canvas, options) {
         var that = this;
 
         this.renderer = new PRenderer(canvas);
@@ -21,6 +22,8 @@ define(function(require, exports, module) {
             that.render();
         };
 
+        this.imgId = imgId;
+
         // set options
         this.set(options);
     };
@@ -30,7 +33,22 @@ define(function(require, exports, module) {
 
 
     Polyvia.prototype.render = function() {
-        this.renderer.render(this);
+        console.time('render');
+
+        var that = this;
+        // face detection
+        var tracker = new tracking.ObjectTracker(['face']);
+        tracker.setStepSize(1.2);
+        tracking.track('#' + this.imgId, tracker);
+        tracker.on('track', function(event) {
+            that.faces = [];
+            event.data.forEach(function(rect) {
+                that.faces.push([rect.x, rect.y, rect.width, rect.height]);
+            });
+            // render
+            that.renderer.render(that);
+            console.timeEnd('render');
+        });
     }
 
 
@@ -49,7 +67,7 @@ define(function(require, exports, module) {
         // coordinate of vertexes are calculated in 
         // (w, h) belonging to ([0, 1], [0, 1])
 
-        // calculate corners
+        // draw image to canvas to get source image
         tracking.Fast.THRESHOLD = 10;
         var canvas = document.createElement('canvas');
         var w = this.srcImg.width;
@@ -62,32 +80,61 @@ define(function(require, exports, module) {
 
         // edge detection
         var sobel = tracking.Image.sobel(imageData.data, w, h);
-        var grayImage = tracking.Image.grayscale(sobel, w, h);
+        var sobelGray = tracking.Image.grayscale(sobel, w, h);
         var threshold = 50;  // TODO
         var corners = [];
+        var faceEdges = [];
         for (var i = 0; i < h; ++i) {
             for (var j = 0; j < w; ++j) {
-                if (grayImage[i * w + j] > threshold) {
-                    corners.push(j);
-                    corners.push(i);
+                if (sobelGray[i * w + j] > threshold) {
+                    var isInFace = false;
+                    for (var f = 0; f < this.faces.length; ++f) {
+                        if (j > this.faces[f][0] - this.faces[f][2] * 0.2
+                                && j < this.faces[f][0] + this.faces[f][2] * 1.2
+                                && i > this.faces[f][1] - this.faces[f][3] * 0.2
+                                && i < this.faces[f][1] + this.faces[f][3] * 1.2) {
+                            // edges in face area
+                            faceEdges.push([j / w, i / h]);
+                            isInFace = true;
+                        }
+                    }
+                    if (!isInFace) {
+                        corners.push([j / w, i / h]);
+                    }
                 }
             }
         }
 
-        // push corner vertices into vertex arrary
+
+
         this.vertexArr = [[0, 0], [1, 0], [0, 1], [1, 1]];
-        var cCnt = corners.length / 2;
         var vCnt = this.options.vertexCnt - 4; // four corners pushed already
-        for (var i = 0; i < vCnt; ++i) {
-            var id = Math.floor(Math.random() * cCnt) * 2;
-            this.vertexArr.push([corners[id] / w, corners[id + 1] / h]);
+        var fCnt = Math.min(faceEdges.length, vCnt * 0.8);
+        var cCnt = Math.min(corners.length, vCnt * 0.95);
+        console.log(vCnt, fCnt, cCnt);
+
+        // push edges in face area
+        for (var i = 0; i < fCnt; ++i) {
+            var id = Math.floor(Math.random() * faceEdges.length);
+            if (!faceEdges[id]['added']) {
+                this.vertexArr.push(faceEdges[id]);
+                faceEdges[id]['added'] = true;
+            }
         }
-        if (vCnt > cCnt) {
-            // push more random vertices if corners are not enough
-            for (var i = 0; i < vCnt - cCnt; i++) {
-                this.vertexArr.push([Math.random(), Math.random()]);
-            };
+
+        // push other edges
+        for (var i = this.vertexArr.length; i < cCnt; ++i) {
+            var id = Math.floor(Math.random() * corners.length);
+            if (!corners[id]['added']) {
+                this.vertexArr.push(corners[id]);
+                corners[id]['added'] = true;
+            }
         }
+
+        // push other edges
+        for (var i = this.vertexArr.length; i < vCnt - cCnt; i++) {
+            this.vertexArr.push([Math.random(), Math.random()]);
+        };
         return this.vertexArr;
     }
 });
