@@ -8,7 +8,6 @@ define(function(require, exports, module) {
     var PRenderer = require('PRenderer');
 
     require('tracking');
-    require('tracking-face');
 
     function Polyvia(imgPath, imgId, canvas, options) {
         var that = this;
@@ -38,7 +37,7 @@ define(function(require, exports, module) {
         var that = this;
         // face detection
         var tracker = new tracking.ObjectTracker(['face']);
-        tracker.setStepSize(1.2);
+        tracker.setStepSize(1.1);
         tracking.track('#' + this.imgId, tracker);
         tracker.on('track', function(event) {
             that.faces = [];
@@ -109,8 +108,8 @@ define(function(require, exports, module) {
 
         this.vertexArr = [[0, 0], [1, 0], [0, 1], [1, 1]];
         var vCnt = this.options.vertexCnt - 4; // four corners pushed already
-        var fCnt = Math.min(faceEdges.length, vCnt * 0.8);
-        var cCnt = Math.min(corners.length, vCnt * 0.95);
+        var fCnt = Math.min(faceEdges.length, vCnt * 0.5);
+        var cCnt = Math.min(corners.length, vCnt * 0.9);
         console.log(vCnt, fCnt, cCnt);
 
         // push edges in face area
