@@ -1,5 +1,5 @@
 define(function(require, exports, module) {
-    var img = './src/img/18.jpg';
+    var img = './src/img/3.jpg';
     var canvas = document.getElementById('canvas');
 
     // init canvas width to that of window
@@ -23,7 +23,7 @@ define(function(require, exports, module) {
     // dat.gui
     require('gui');
     var GuiConfig = function() {
-        this['Image Path'] = '18.jpg';
+        this['Image Path'] = '3.jpg';
 
         this['Upload Image'] = function() {
             var input = document.getElementById('img-path');
@@ -42,12 +42,15 @@ define(function(require, exports, module) {
 
         this['Edge Weight'] = 0.8;
 
+        this['Render Vertices'] = true;
+
         this['Apply'] = function() {
             polyvia.set({
                 vertexCnt: this['Vertex Cnt'],
-                edgeWeight: 41 - this['Edges Weight'] * 40
+                edgeWeight: this['Edge Weight'],
+                renderVertices: this['Render Vertices']
             });
-            polyvia.render();
+            polyvia.render(this['Render Vertices']);
         };
     };
     var config = new GuiConfig();
@@ -56,5 +59,6 @@ define(function(require, exports, module) {
     gui.add(config, 'Upload Image');
     gui.add(config, 'Vertex Cnt', 100, 5000).step(100);
     gui.add(config, 'Edge Weight', 0, 1).step(0.05);
+    gui.add(config, 'Render Vertices');
     gui.add(config, 'Apply');
 });

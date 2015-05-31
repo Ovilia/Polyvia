@@ -32,22 +32,29 @@ define(function(require, exports, module) {
 
 
     Polyvia.prototype.render = function() {
-        console.time('render');
+        console.time('track');
 
         var that = this;
-        // face detection
-        var tracker = new tracking.ObjectTracker(['face']);
-        tracker.setStepSize(1.1);
-        tracking.track('#' + this.imgId, tracker);
-        tracker.on('track', function(event) {
-            that.faces = [];
-            event.data.forEach(function(rect) {
-                that.faces.push([rect.x, rect.y, rect.width, rect.height]);
-            });
-            // render
+        if (that.faces !== undefined) {
             that.renderer.render(that);
-            console.timeEnd('render');
-        });
+        } else {
+            // face detection
+            var tracker = new tracking.ObjectTracker(['face']);
+            tracker.setStepSize(1.8);
+            tracking.track('#' + this.imgId, tracker);
+            tracker.on('track', function(event) {
+                console.timeEnd('track');
+                that.faces = [];
+                event.data.forEach(function(rect) {
+                    console.log(rect);
+                    that.faces.push([rect.x, rect.y, rect.width, rect.height]);
+                });
+                // TODO: removing faking face positions
+                //that.faces.push([218, 107, 200, 200]);
+                // render
+                that.renderer.render(that);
+            });
+        }
     }
 
 
@@ -56,7 +63,8 @@ define(function(require, exports, module) {
         // TODO: extends options neatly
         this.options = options || {
             vertexCnt: 1000,
-            edgeWeight: 9
+            edgeWeight: 0.9,
+            renderVertices: true
         };
     }
 
@@ -88,10 +96,10 @@ define(function(require, exports, module) {
                 if (sobelGray[i * w + j] > threshold) {
                     var isInFace = false;
                     for (var f = 0; f < this.faces.length; ++f) {
-                        if (j > this.faces[f][0] - this.faces[f][2] * 0.2
-                                && j < this.faces[f][0] + this.faces[f][2] * 1.2
-                                && i > this.faces[f][1] - this.faces[f][3] * 0.2
-                                && i < this.faces[f][1] + this.faces[f][3] * 1.2) {
+                        if (j > this.faces[f][0] - this.faces[f][2] * 0.1
+                                && j < this.faces[f][0] + this.faces[f][2] * 1.1
+                                && i > this.faces[f][1] - this.faces[f][3] * 0.1
+                                && i < this.faces[f][1] + this.faces[f][3] * 1.1) {
                             // edges in face area
                             faceEdges.push([j / w, i / h]);
                             isInFace = true;
@@ -108,8 +116,10 @@ define(function(require, exports, module) {
 
         this.vertexArr = [[0, 0], [1, 0], [0, 1], [1, 1]];
         var vCnt = this.options.vertexCnt - 4; // four corners pushed already
-        var fCnt = Math.min(faceEdges.length, vCnt * 0.5);
-        var cCnt = Math.min(corners.length, vCnt * 0.9);
+        console.log(this.options.edgeWeight);
+        var fCnt = Math.min(faceEdges.length, 
+                vCnt * this.options.edgeWeight * 0.5);
+        var cCnt = Math.min(corners.length, vCnt * this.options.edgeWeight);
         console.log(vCnt, fCnt, cCnt);
 
         // push edges in face area

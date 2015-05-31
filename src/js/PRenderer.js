@@ -57,9 +57,14 @@ define(function(require, exports, module) {
         this.ctx.drawImage(polyvia.srcImg, dw, dh, w, h);
 
         // calculate vertex positions
+        console.time('vertex');
         var vertices = polyvia.getVertices();
+        console.timeEnd('vertex');
 
+        console.time('triangle');
         var triangles = Delaunay.triangulate(vertices);
+        console.timeEnd('triangle');
+        console.time('render');
         for(var i = triangles.length - 1; i > 2; i -= 3) {
             // positions of three vertices
             var a = [vertices[triangles[i]][0] * w + dw, 
@@ -86,10 +91,13 @@ define(function(require, exports, module) {
             this.ctx.fill();
 
             // draw the vertices
-            // this.ctx.fillStyle = 'rgb(255, 255, 0)';
-            // this.ctx.fillRect(a[0], a[1], 1, 1);
-            // this.ctx.fillRect(b[0], b[1], 1, 1);
-            // this.ctx.fillRect(c[0], c[1], 1, 1);
+            if (polyvia.options.renderVertices) {
+                this.ctx.fillStyle = 'rgb(255, 255, 0)';
+                this.ctx.fillRect(a[0], a[1], 1, 1);
+                this.ctx.fillRect(b[0], b[1], 1, 1);
+                this.ctx.fillRect(c[0], c[1], 1, 1);
+            }
         }
+        console.timeEnd('render');
     }
 });

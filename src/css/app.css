@@ -9,10 +9,6 @@ html {
     overflow: hidden;
 }
 
-#source-img {
+#source-img, #img-path {
     display: none;
-}
-
-#img-path {
-    visibility: hidden;
 }
