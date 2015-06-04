@@ -12,12 +12,11 @@ define(function(require, exports, module) {
     function Polyvia(imgPath, imgId, canvas, options) {
         var that = this;
 
-        this.renderer = new GlRenderer(canvas);
-
         // original image
         this.srcImg = new Image();
         this.srcImg.src = imgPath;
         this.srcImg.onload = function() {
+            that.renderer = new GlRenderer(canvas, that);
             that.render();
         };
 
@@ -36,7 +35,7 @@ define(function(require, exports, module) {
 
         var that = this;
         if (that.faces !== undefined) {
-            that.renderer.render(that);
+            that.renderer.render();
         } else {
             // face detection
             var tracker = new tracking.ObjectTracker(['face']);
@@ -52,7 +51,7 @@ define(function(require, exports, module) {
                 // TODO: removing faking face positions
                 //that.faces.push([218, 107, 200, 200]);
                 // render
-                that.renderer.render(that);
+                that.renderer.render();
             });
         }
     }
