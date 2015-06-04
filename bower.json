@@ -20,6 +20,7 @@
     "delaunay-fast": "*",
     "seajs": "~2.2.3",
     "dat-gui": "~0.5.0",
-    "tracking.js": "~1.0.0"
+    "tracking.js": "~1.0.0",
+    "three.js": "~0.71.0"
   }
 }

@@ -5,14 +5,14 @@
 
 define(function(require, exports, module) {
 
-    var PRenderer = require('PRenderer');
+    var GlRenderer = require('GlRenderer');
 
     require('tracking');
 
     function Polyvia(imgPath, imgId, canvas, options) {
         var that = this;
 
-        this.renderer = new PRenderer(canvas);
+        this.renderer = new GlRenderer(canvas);
 
         // original image
         this.srcImg = new Image();
