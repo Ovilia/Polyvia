@@ -19,7 +19,7 @@ define(function(require, exports, module) {
         this.renderer = new THREE.WebGLRenderer({
             canvas: this.canvas
         });
-        this.renderer.setClearColor(0xffffff);
+        //this.renderer.setClearColor(0xffffff);
 
         this.scene = new THREE.Scene();
         
@@ -70,11 +70,17 @@ define(function(require, exports, module) {
                     vertices[triangles[i - 2]][1] * size.h + size.dh];
 
             // fill with color in center of gravity
-            var x = (a[0] + b[0] + c[0]) / 3;
-            var y = (a[1] + b[1] + c[1]) / 3;
-            var pixel = this.srcCtx.getImageData(x, y, 1, 1).data;
-            var rgb = 'rgb(' + pixel[0] + ', ' + pixel[1] + ', ' + pixel[2]
-                    + ')';
+            var x = Math.floor((vertices[triangles[i]][0] 
+                    + vertices[triangles[i - 1]][0] 
+                    + vertices[triangles[i - 2]][0]) / 3 
+                    * this.polyvia.srcImg.width);
+            var y = Math.floor((vertices[triangles[i]][1] 
+                    + vertices[triangles[i - 1]][1] 
+                    + vertices[triangles[i - 2]][1]) / 3 
+                    * this.polyvia.srcImg.height);
+            var id = (y * this.polyvia.srcImg.width + x) * 4;
+            var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
+                    + ', ' + this.srcPixel[id + 2] + ')';
 
             // draw the triangle
             var geo = new THREE.Geometry();
@@ -82,9 +88,11 @@ define(function(require, exports, module) {
             geo.vertices.push(new THREE.Vector3(b[0], b[1], 0));
             geo.vertices.push(new THREE.Vector3(c[0], c[1], 0));
             geo.faces.push(new THREE.Face3(0, 1, 2));
+            geo.faces[0].color = new THREE.Color(rgb);
             var mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
-                color: new THREE.Color(rgb),
-                wireframe: true
+                vertexColors: THREE.FaceColors,
+                color: 0xffffff,
+                side: THREE.BackSide
             }));
             this.scene.add(mesh);
         }
@@ -101,8 +109,11 @@ define(function(require, exports, module) {
         var canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
-        this.srcCtx = canvas.getContext('2d');
-        this.srcCtx.drawImage(img, 0, 0, img.width, img.height);
+        var srcCtx = canvas.getContext('2d');
+        srcCtx.drawImage(img, 0, 0, img.width, img.height);
+
+        this.srcPixel = srcCtx.getImageData(0, 0, img.width, img.height).data;
+        console.log(this.srcPixel);
     }
 
 
