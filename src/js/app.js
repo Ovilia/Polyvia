@@ -15,13 +15,14 @@ define(function(require, exports, module) {
     window.onresize = function() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        polyvia.render();
+        polyvia.renderer.resize();
     }
 
 
 
     // dat.gui
     require('gui');
+    var hasWireframe = true;
     var GuiConfig = function() {
         this['Image Path'] = '3.jpg';
 
@@ -42,15 +43,18 @@ define(function(require, exports, module) {
 
         this['Edge Weight'] = 0.8;
 
-        this['Render Vertices'] = true;
+        this['Wireframe'] = function() {
+            hasWireframe = !hasWireframe;
+            polyvia.renderer.setWireframe(hasWireframe);
+        };
 
         this['Apply'] = function() {
             polyvia.set({
                 vertexCnt: this['Vertex Cnt'],
                 edgeWeight: this['Edge Weight'],
-                renderVertices: this['Render Vertices']
+                // renderVertices: this['Render Vertices']
             });
-            polyvia.render(this['Render Vertices']);
+            polyvia.renderer.render();
         };
     };
     var config = new GuiConfig();
@@ -59,6 +63,6 @@ define(function(require, exports, module) {
     gui.add(config, 'Upload Image');
     gui.add(config, 'Vertex Cnt', 100, 5000).step(100);
     gui.add(config, 'Edge Weight', 0, 1).step(0.05);
-    gui.add(config, 'Render Vertices');
+    gui.add(config, 'Wireframe');
     gui.add(config, 'Apply');
 });
