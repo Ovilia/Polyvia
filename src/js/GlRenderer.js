@@ -24,8 +24,8 @@ define(function(require, exports, module) {
         this.scene = new THREE.Scene();
         
         this.camera = new THREE.OrthographicCamera(-this.canvas.width / 2,
-                this.canvas.width / 2, -this.canvas.height / 2, 
-                this.canvas.height / 2, 0, 10);
+                this.canvas.width / 2, this.canvas.height / 2, 
+                -this.canvas.height / 2, 0, 10);
         this.camera.position.set(0, 0, 5);
         this.scene.add(this.camera);
 
@@ -39,13 +39,14 @@ define(function(require, exports, module) {
         // material for face color
         this.faceMaterial = new THREE.MeshBasicMaterial({
             vertexColors: THREE.FaceColors,
-            color: 0xffffff,
-            side: THREE.BackSide
+            color: 0xffffff
         });
         this.faceMesh = null;
 
         // render the srcImg to get pixel color later
+        console.time('preRender');
         this.preRender(this.polyvia.srcImg);
+        console.timeEnd('preRender');
     }
 
 
@@ -62,10 +63,15 @@ define(function(require, exports, module) {
         console.timeEnd('triangle');
 
         console.time('render');
-        this.rerender();
+        // this.rerender();
         console.timeEnd('render');
 
-        this.setWireframe(this.polyvia.options.renderVertices);
+
+
+        // this.renderer.render(this.scene, this.camera);
+        this.rerender();
+
+        // this.setWireframe(this.polyvia.options.renderVertices);
     }
 
 
@@ -82,7 +88,9 @@ define(function(require, exports, module) {
     GlRenderer.prototype.rerender = function() {
         // remove meshes from scene
         if (this.faceMesh) {
-            this.scene.remove(this.faceMesh);
+            for (var i = 0; i < this.faceMesh.length; ++i) {
+                this.scene.remove(this.faceMesh[i]);
+            }
         }
         if (this.wireframeMesh) {
             this.scene.remove(this.wireframeMesh);
@@ -91,73 +99,99 @@ define(function(require, exports, module) {
         var size = this.getRenderSize(this.polyvia.srcImg.width,
                 this.polyvia.srcImg.height);
 
-        this.faceMesh = [];
-        var wireframeGeo = new THREE.Geometry();
-        var vertices = this.vertices;
-        var triangles = this.triangles;
-        for(var i = triangles.length - 1; i > 2; i -= 3) {
-            // positions of three vertices
-            var a = [vertices[triangles[i]][0] * size.w + size.dw, 
-                    vertices[triangles[i]][1] * size.h + size.dh];
-            var b = [vertices[triangles[i - 1]][0] * size.w + size.dw, 
-                    vertices[triangles[i - 1]][1] * size.h + size.dh];
-            var c = [vertices[triangles[i - 2]][0] * size.w + size.dw, 
-                    vertices[triangles[i - 2]][1] * size.h + size.dh];
+        // render target for image processing
+        this.renderTarget = new THREE.WebGLRenderTarget(size.w, size.h, {
+            minFilter: THREE.LinearFilter,
+            magFilter: THREE.NearestFilter
+        });
 
-            // fill with color in center of gravity
-            var x = Math.floor((vertices[triangles[i]][0] 
-                    + vertices[triangles[i - 1]][0] 
-                    + vertices[triangles[i - 2]][0]) / 3 
-                    * this.polyvia.srcImg.width);
-            var y = Math.floor((vertices[triangles[i]][1] 
-                    + vertices[triangles[i - 1]][1] 
-                    + vertices[triangles[i - 2]][1]) / 3 
-                    * this.polyvia.srcImg.height);
-            var id = (y * this.polyvia.srcImg.width + x) * 4;
-            var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
-                    + ', ' + this.srcPixel[id + 2] + ')';
+        // source image as texture
+        var that = this;
+        var srcTexture = THREE.ImageUtils.loadTexture(
+                '../src/img/18.jpg', {}, function() {
+                    console.log('render');
+                    that.renderer.render(that.scene, that.camera, that.renderTarget);
+                    that.renderer.render(that.scene, that.camera);
+                });
+        srcTexture.magFilter = THREE.LinearFilter;
+        srcTexture.minFilter = THREE.LinearFilter;
 
-            // draw the triangle
-            // face mesh
-            var geo = new THREE.Geometry();
-            geo.vertices.push(new THREE.Vector3(a[0], a[1], 0));
-            geo.vertices.push(new THREE.Vector3(b[0], b[1], 0));
-            geo.vertices.push(new THREE.Vector3(c[0], c[1], 0));
-            geo.faces.push(new THREE.Face3(0, 1, 2));
-            geo.faces[0].color = new THREE.Color(rgb);
-            var mesh = new THREE.Mesh(geo, this.faceMaterial);
-            this.faceMesh.push(mesh);
-            this.scene.add(mesh);
+        // plane for render target
+        this.imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(
+                size.w, size.h), new THREE.MeshBasicMaterial({
+                    map: srcTexture
+                }));
+        this.imgMesh.position.z = -1;
+        this.scene.add(this.imgMesh);
 
-            // wireframe mesh
-            wireframeGeo.vertices.push(new THREE.Vector3(a[0], a[1], 1));
-            wireframeGeo.vertices.push(new THREE.Vector3(b[0], b[1], 1));
-            wireframeGeo.vertices.push(new THREE.Vector3(c[0], c[1], 1));
-            wireframeGeo.faces.push(new THREE.Face3(triangles.length - i - 1,
-                    triangles.length - i, triangles.length - i + 1));
-        }
-        // add wireframe mesh to scene
-        this.wireframeMesh = new THREE.Mesh(wireframeGeo, 
-                this.wireframeMaterial);
-        this.scene.add(this.wireframeMesh);
+        // this.faceMesh = [];
+        // var wireframeGeo = new THREE.Geometry();
+        // var vertices = this.vertices;
+        // var triangles = this.triangles;
+        // for(var i = triangles.length - 1; i > 2; i -= 3) {
+        //     // positions of three vertices
+        //     var a = [vertices[triangles[i]][0] * size.w + size.dw, 
+        //             vertices[triangles[i]][1] * size.h + size.dh];
+        //     var b = [vertices[triangles[i - 1]][0] * size.w + size.dw, 
+        //             vertices[triangles[i - 1]][1] * size.h + size.dh];
+        //     var c = [vertices[triangles[i - 2]][0] * size.w + size.dw, 
+        //             vertices[triangles[i - 2]][1] * size.h + size.dh];
 
-        this.renderer.render(this.scene, this.camera);
+        //     // fill with color in center of gravity
+        //     var x = Math.floor((vertices[triangles[i]][0] 
+        //             + vertices[triangles[i - 1]][0] 
+        //             + vertices[triangles[i - 2]][0]) / 3 
+        //             * this.polyvia.srcImg.width);
+        //     var y = Math.floor((vertices[triangles[i]][1] 
+        //             + vertices[triangles[i - 1]][1] 
+        //             + vertices[triangles[i - 2]][1]) / 3 
+        //             * this.polyvia.srcImg.height);
+        //     var id = (y * this.polyvia.srcImg.width + x) * 4;
+        //     var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
+        //             + ', ' + this.srcPixel[id + 2] + ')';
+
+        //     // draw the triangle
+        //     // face mesh
+        //     var geo = new THREE.Geometry();
+        //     geo.vertices.push(new THREE.Vector3(a[0], a[1], 0));
+        //     geo.vertices.push(new THREE.Vector3(b[0], b[1], 0));
+        //     geo.vertices.push(new THREE.Vector3(c[0], c[1], 0));
+        //     geo.faces.push(new THREE.Face3(0, 1, 2));
+        //     geo.faces[0].color = new THREE.Color(rgb);
+        //     var mesh = new THREE.Mesh(geo, this.faceMaterial);
+        //     this.faceMesh.push(mesh);
+        //     this.scene.add(mesh);
+
+        //     // wireframe mesh
+        //     wireframeGeo.vertices.push(new THREE.Vector3(a[0], a[1], 1));
+        //     wireframeGeo.vertices.push(new THREE.Vector3(b[0], b[1], 1));
+        //     wireframeGeo.vertices.push(new THREE.Vector3(c[0], c[1], 1));
+        //     wireframeGeo.faces.push(new THREE.Face3(triangles.length - i - 1,
+        //             triangles.length - i, triangles.length - i + 1));
+        // }
+        // // add wireframe mesh to scene
+        // this.wireframeMesh = new THREE.Mesh(wireframeGeo, 
+        //         this.wireframeMaterial);
+        // this.scene.add(this.wireframeMesh);
+
+        // this.renderer.render(this.scene, this.camera);
     }
 
 
 
     GlRenderer.prototype.resize = function() {
+        // TODO: this function still not works yet
         var h = this.canvas.height;
         var w = this.canvas.width;
-        this.wireframeMesh.position.y += h / 2 - this.camera.top;
-        this.wireframeMesh.position.x += w / 2 - this.camera.left;
+        // this.wireframeMesh.position.y += h / 2 - this.camera.top;
+        // this.wireframeMesh.position.x += w / 2 - this.camera.left;
 
-        // this.camera.left = -w / 2;
-        // this.camera.right = w / 2;
-        // this.camera.top = -h / 2;
-        // this.camera.right = h / 2;
+        this.camera.left = -w / 2;
+        this.camera.right = w / 2;
+        this.camera.top = -h / 2;
+        this.camera.right = h / 2;
         this.rerender();
-        console.log(this.camera.top);
+        // console.log(this.camera.top);
     }
 
 

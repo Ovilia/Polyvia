@@ -31,29 +31,31 @@ define(function(require, exports, module) {
 
 
     Polyvia.prototype.render = function() {
-        console.time('track');
+        // console.time('track');
+        this.faces = [];
+        this.renderer.render();
 
-        var that = this;
-        if (that.faces !== undefined) {
-            that.renderer.render();
-        } else {
-            // face detection
-            var tracker = new tracking.ObjectTracker(['face']);
-            tracker.setStepSize(1.8);
-            tracking.track('#' + this.imgId, tracker);
-            tracker.on('track', function(event) {
-                console.timeEnd('track');
-                that.faces = [];
-                event.data.forEach(function(rect) {
-                    console.log(rect);
-                    that.faces.push([rect.x, rect.y, rect.width, rect.height]);
-                });
-                // TODO: removing faking face positions
-                //that.faces.push([218, 107, 200, 200]);
-                // render
-                that.renderer.render();
-            });
-        }
+        // var that = this;
+        // if (that.faces !== undefined) {
+        //     that.renderer.render();
+        // } else {
+        //     // face detection
+        //     var tracker = new tracking.ObjectTracker(['face']);
+        //     tracker.setStepSize(1.8);
+        //     tracking.track('#' + this.imgId, tracker);
+        //     tracker.on('track', function(event) {
+        //         console.timeEnd('track');
+        //         that.faces = [];
+        //         event.data.forEach(function(rect) {
+        //             console.log(rect);
+        //             that.faces.push([rect.x, rect.y, rect.width, rect.height]);
+        //         });
+        //         // TODO: removing faking face positions
+        //         //that.faces.push([218, 107, 200, 200]);
+        //         // render
+        //         that.renderer.render();
+        //     });
+        // }
     }
 
 
@@ -115,11 +117,9 @@ define(function(require, exports, module) {
 
         this.vertexArr = [[0, 0], [1, 0], [0, 1], [1, 1]];
         var vCnt = this.options.vertexCnt - 4; // four corners pushed already
-        console.log(this.options.edgeWeight);
         var fCnt = Math.min(faceEdges.length, 
                 vCnt * this.options.edgeWeight * 0.5);
         var cCnt = Math.min(corners.length, vCnt * this.options.edgeWeight);
-        console.log(vCnt, fCnt, cCnt);
 
         // push edges in face area
         for (var i = 0; i < fCnt; ++i) {
