@@ -111,6 +111,20 @@ define(function(require, exports, module) {
                 '../src/img/18.jpg', {}, function() {
                     console.log('render');
                     that.renderer.render(that.scene, that.camera, that.renderTarget);
+
+
+                    // edge detection shader material
+                    var edgeShader = new THREE.ShaderMaterial({
+                        uniforms: {},
+                        attributes: {},
+                        vertexShader: document.getElementById('vertexShader').textContent,
+                        fragmentShader: document.getElementById('fragmentShader').textContent,
+                        transparent: true
+                    });
+                    var secondMesh = new THREE.Mesh(new THREE.PlaneGeometry(
+                            size.w, size.h), edgeShader);
+
+
                     that.renderer.render(that.scene, that.camera);
                 });
         srcTexture.magFilter = THREE.LinearFilter;
