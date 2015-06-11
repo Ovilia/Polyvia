@@ -100,12 +100,6 @@ define(function(require, exports, module) {
         var size = this.getRenderSize(this.polyvia.srcImg.width,
                 this.polyvia.srcImg.height);
 
-        // render target for image processing
-        this.renderTarget = new THREE.WebGLRenderTarget(size.w, size.h, {
-            minFilter: THREE.LinearFilter,
-            magFilter: THREE.NearestFilter
-        });
-
         // plane for render target
         var that = this;
         var srcTexture = THREE.ImageUtils.loadTexture('../src/img/18.jpg', {}, function() {
@@ -132,6 +126,8 @@ define(function(require, exports, module) {
         this.composer.addPass(renderPass);
         this.composer.addPass(edgeShader);
         this.composer.addPass(effectCopy);
+
+        console.log(this.composer.renderTarget2);
         // composer.render();
 
         // this.faceMesh = [];
