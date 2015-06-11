@@ -4,6 +4,7 @@
 define(function(require, exports, module) {
     require('delaunay');
     require('three');
+    // require('edge');
 
     function GlRenderer(canvas, polyvia) {
         this.canvas = canvas;
@@ -105,38 +106,33 @@ define(function(require, exports, module) {
             magFilter: THREE.NearestFilter
         });
 
-        // source image as texture
+        // plane for render target
         var that = this;
-        var srcTexture = THREE.ImageUtils.loadTexture(
-                '../src/img/18.jpg', {}, function() {
-                    console.log('render');
-                    that.renderer.render(that.scene, that.camera, that.renderTarget);
-
-
-                    // edge detection shader material
-                    var edgeShader = new THREE.ShaderMaterial({
-                        uniforms: {},
-                        attributes: {},
-                        vertexShader: document.getElementById('vertexShader').textContent,
-                        fragmentShader: document.getElementById('fragmentShader').textContent,
-                        transparent: true
-                    });
-                    var secondMesh = new THREE.Mesh(new THREE.PlaneGeometry(
-                            size.w, size.h), edgeShader);
-
-
-                    that.renderer.render(that.scene, that.camera);
-                });
+        var srcTexture = THREE.ImageUtils.loadTexture('../src/img/18.jpg', {}, function() {
+            that.composer.render();
+            // that.renderer.render(that.scene, that.camera);
+        });
         srcTexture.magFilter = THREE.LinearFilter;
         srcTexture.minFilter = THREE.LinearFilter;
-
-        // plane for render target
         this.imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(
                 size.w, size.h), new THREE.MeshBasicMaterial({
                     map: srcTexture
                 }));
         this.imgMesh.position.z = -1;
         this.scene.add(this.imgMesh);
+
+        var renderPass = new THREE.RenderPass(this.scene, this.camera);
+
+        var edgeShader = new THREE.ShaderPass(THREE.EdgeShader);
+
+        var effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+        effectCopy.renderToScreen = true;
+
+        this.composer = new THREE.EffectComposer(this.renderer);
+        this.composer.addPass(renderPass);
+        this.composer.addPass(edgeShader);
+        this.composer.addPass(effectCopy);
+        // composer.render();
 
         // this.faceMesh = [];
         // var wireframeGeo = new THREE.Geometry();
