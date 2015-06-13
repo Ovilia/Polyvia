@@ -1,5 +1,5 @@
 require(['Polyvia', 'dat'], function(Polyvia, dat) {
-    console.log('app called');
+
     var img = './src/img/3.jpg';
     var canvas = document.getElementById('canvas');
 

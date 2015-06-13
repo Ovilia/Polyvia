@@ -5,7 +5,6 @@
 
 
 define(function (require, exports, module) {
-    console.log('Polyvia');
 
     var GlRenderer = require('GlRenderer');
 

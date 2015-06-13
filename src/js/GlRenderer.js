@@ -2,9 +2,15 @@
 // computed in `Polyvia`.
 
 define(function (require, exports, module) {
-    console.log('GlRenderer');
 
-    var THREE = require('three');
+    var THREE            = require('three');
+    THREE.CopyShader     = require('threeCopy');
+    THREE.EdgeShader     = require('threeEdge');
+    THREE.EffectComposer = require('threeComposer');
+    THREE.MaskPass       = require('threeMask');
+    THREE.RenderPass     = require('threeRender');
+    THREE.ShaderPass     = require('threeShader');
+
     var Delaunay = require('delaunay');
 
     function GlRenderer(canvas, polyvia) {
