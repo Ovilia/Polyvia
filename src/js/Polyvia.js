@@ -3,8 +3,11 @@
 // Rendering is handled in `PRenderer`, which is responsive according
 // to output size.
 
-require(['GlRenderer'], function(GlRenderer) {
+
+define(function (require, exports, module) {
     console.log('Polyvia');
+
+    var GlRenderer = require('GlRenderer');
 
     function Polyvia(imgPath, imgId, canvas, options) {
         var that = this;

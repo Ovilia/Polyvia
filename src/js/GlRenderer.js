@@ -1,8 +1,11 @@
 // `GLRenderer` renders the output using WebGL according to the result
 // computed in `Polyvia`.
 
-require(['delaunay', 'three'], function() {
-    console.log('renderer');
+define(function (require, exports, module) {
+    console.log('GlRenderer');
+
+    var THREE = require('three');
+    var Delaunay = require('delaunay');
 
     function GlRenderer(canvas, polyvia) {
         this.canvas = canvas;

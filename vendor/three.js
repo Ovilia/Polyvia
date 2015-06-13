@@ -1,4 +1,4 @@
-
+define(function (require, exports, module) {
 // File:src/Three.js
 
 /**
@@ -106870,3 +106870,6 @@ THREE.ShaderPass.prototype = {
 	}
 
 };
+
+  return THREE;
+});

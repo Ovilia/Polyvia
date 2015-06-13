@@ -1,3 +1,5 @@
+define(function (require, exports, module) {
+
 var Delaunay;
 
 (function() {
@@ -232,3 +234,6 @@ var Delaunay;
   if(typeof module !== "undefined")
     module.exports = Delaunay;
 })();
+
+  return Delaunay;
+});

@@ -11,6 +11,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+define(function (require, exports, module) {
 /** @namespace */
 var dat = dat || {};
 
@@ -3658,3 +3659,6 @@ dat.dom.CenteredDiv = (function (dom, common) {
 dat.utils.common),
 dat.dom.dom,
 dat.utils.common);
+
+  return dat;
+});

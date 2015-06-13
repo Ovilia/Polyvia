@@ -1,4 +1,4 @@
-require(['Polyvia'], function(Polyvia) {
+require(['Polyvia', 'dat'], function(Polyvia, dat) {
     console.log('app called');
     var img = './src/img/3.jpg';
     var canvas = document.getElementById('canvas');
@@ -21,7 +21,6 @@ require(['Polyvia'], function(Polyvia) {
 
 
     // dat.gui
-    require('dat.gui');
     var hasWireframe = true;
     var GuiConfig = function() {
         this['Image Path'] = '3.jpg';
