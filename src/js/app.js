@@ -1,4 +1,5 @@
-define(function(require, exports, module) {
+require(['Polyvia'], function(Polyvia) {
+    console.log('app called');
     var img = './src/img/3.jpg';
     var canvas = document.getElementById('canvas');
 
@@ -6,7 +7,6 @@ define(function(require, exports, module) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    var Polyvia = require('Polyvia');
     var polyvia = new Polyvia(img, 'source-img', canvas);
 
 
@@ -21,7 +21,7 @@ define(function(require, exports, module) {
 
 
     // dat.gui
-    require('gui');
+    require('dat.gui');
     var hasWireframe = true;
     var GuiConfig = function() {
         this['Image Path'] = '3.jpg';

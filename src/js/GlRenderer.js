@@ -1,18 +1,14 @@
 // `GLRenderer` renders the output using WebGL according to the result
 // computed in `Polyvia`.
 
-define(function(require, exports, module) {
-    require('delaunay');
-    require('three');
-    // require('edge');
+require(['delaunay', 'three'], function() {
+    console.log('renderer');
 
     function GlRenderer(canvas, polyvia) {
         this.canvas = canvas;
         this.polyvia = polyvia;
         this.init(polyvia);
     };
-
-    module.exports = GlRenderer;
 
 
 
@@ -54,12 +50,13 @@ define(function(require, exports, module) {
 
     GlRenderer.prototype.render = function() {
         // calculate vertex positions
-        console.time('vertex');
-        this.vertices = this.polyvia.getVertices();
-        console.timeEnd('vertex');
+        // console.time('vertex');
+        // this.vertices = this.polyvia.getVertices();
+        // console.timeEnd('vertex');
 
         // compose triangles
         console.time('triangle');
+        this.vertices = [];
         this.triangles = Delaunay.triangulate(this.vertices);
         console.timeEnd('triangle');
 
@@ -71,6 +68,7 @@ define(function(require, exports, module) {
 
         // this.renderer.render(this.scene, this.camera);
         this.rerender();
+        console.log('rerender');
 
         // this.setWireframe(this.polyvia.options.renderVertices);
     }
@@ -260,4 +258,6 @@ define(function(require, exports, module) {
             dh: dh - ch / 2
         };
     }
+
+    return GlRenderer;
 });
