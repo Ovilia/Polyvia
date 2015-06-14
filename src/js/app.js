@@ -1,13 +1,13 @@
-require(['Polyvia', 'dat'], function(Polyvia, dat) {
+require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
 
-    var img = './src/img/mao.png';
+    var img = './src/img/3.jpg';
     var canvas = document.getElementById('canvas');
 
     // init canvas width to that of window
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    var polyvia = new Polyvia(img, 'source-img', canvas);
+    var renderer = new GlRenderer(img, canvas);
 
 
 
@@ -15,7 +15,7 @@ require(['Polyvia', 'dat'], function(Polyvia, dat) {
     window.onresize = function() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        polyvia.renderer.resize();
+        renderer.resize();
     }
 
 
@@ -23,7 +23,7 @@ require(['Polyvia', 'dat'], function(Polyvia, dat) {
     // dat.gui
     var hasWireframe = true;
     var GuiConfig = function() {
-        this['Image Path'] = 'me.jpg';
+        this['Image Path'] = '';
 
         this['Upload Image'] = function() {
             var input = document.getElementById('img-path');
@@ -44,16 +44,16 @@ require(['Polyvia', 'dat'], function(Polyvia, dat) {
 
         this['Wireframe'] = function() {
             hasWireframe = !hasWireframe;
-            polyvia.renderer.setWireframe(hasWireframe);
+            renderer.setWireframe(hasWireframe);
         };
 
         this['Apply'] = function() {
-            polyvia.set({
-                vertexCnt: this['Vertex Cnt'],
-                edgeWeight: this['Edge Weight'],
-                // renderVertices: this['Render Vertices']
-            });
-            polyvia.renderer.render();
+            // polyvia.set({
+            //     vertexCnt: this['Vertex Cnt'],
+            //     edgeWeight: this['Edge Weight'],
+            //     // renderVertices: this['Render Vertices']
+            // });
+            renderer.render();
         };
     };
     var config = new GuiConfig();

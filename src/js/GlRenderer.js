@@ -13,17 +13,19 @@ define(function (require, exports, module) {
 
     var Delaunay = require('delaunay');
 
-    function GlRenderer(canvas, polyvia) {
+    function GlRenderer(imgPath, canvas) {
+        this.imgPath = imgPath;
         this.canvas = canvas;
-        this.polyvia = polyvia;
-        this.init(polyvia);
+
+        this.init();
     };
 
 
 
     GlRenderer.prototype.init = function() {
         this.renderer = new THREE.WebGLRenderer({
-            canvas: this.canvas
+            canvas: this.canvas,
+            antialias: true
         });
         this.renderer.setClearColor(0x0);
 
@@ -51,7 +53,7 @@ define(function (require, exports, module) {
 
         // render the srcImg to get pixel color later
         console.time('preRender');
-        this.preRender(this.polyvia.srcImg);
+        this.preRender();
         console.timeEnd('preRender');
     };
 
@@ -59,8 +61,6 @@ define(function (require, exports, module) {
 
     GlRenderer.prototype.render = function() {
         this.rerender();
-
-        // this.setWireframe(this.polyvia.options.renderVertices);
     };
 
 
@@ -85,12 +85,11 @@ define(function (require, exports, module) {
             this.scene.remove(this.wireframeMesh);
         }
 
-        var size = this.getRenderSize(this.polyvia.srcImg.width,
-                this.polyvia.srcImg.height);
+        var size = this.getRenderSize(this.srcImg.width, this.srcImg.height);
 
         // plane for render target
         var that = this;
-        var srcTexture = THREE.ImageUtils.loadTexture('../src/img/mao.png', {},
+        var srcTexture = THREE.ImageUtils.loadTexture(this.imgPath, {},
             function() {
                 console.time('composer');
                 that.composer.render();
@@ -109,14 +108,12 @@ define(function (require, exports, module) {
                 // append to vertex array
                 console.log(size.w, size.h);
                 var i = 0;
-                for (var x = 0; x < size.w; ++x) {
-                    for (var y = 0; y < size.h; ++y) {
+                for (var y = 0; y < size.h; ++y) {
+                    for (var x = 0; x < size.w; ++x) {
                         if (pixels[i] > 0) {
                             // is a selected edge vertex
                             that.vertices.push([x, y]);
-                            console.log(x, y);
                         }
-                        // console.log(pixels[i]);
                         i += 4;
                     }
                 }
@@ -165,55 +162,54 @@ define(function (require, exports, module) {
         var wireframeGeo = new THREE.Geometry();
         var vertices = this.vertices;
         var triangles = this.triangles;
-        var size = this.getRenderSize(this.polyvia.srcImg.width,
-                this.polyvia.srcImg.height);
-        for (var i = 0; i < vertices.length; i++) {
-            var plane = new THREE.Mesh(new THREE.PlaneGeometry(3, 3),
-                new THREE.MeshBasicMaterial({color: 0xffff00}));
-            plane.position.set(vertices[i][0] + size.dw, vertices[i][1] + size.dh, 1);
-            this.scene.add(plane);
-        };
-        // for(var i = triangles.length - 1; i > 2; i -= 3) {
-        //     // positions of three vertices
-        //     var a = [vertices[triangles[i]][0] * size.w + size.dw, 
-        //             vertices[triangles[i]][1] * size.h + size.dh];
-        //     var b = [vertices[triangles[i - 1]][0] * size.w + size.dw, 
-        //             vertices[triangles[i - 1]][1] * size.h + size.dh];
-        //     var c = [vertices[triangles[i - 2]][0] * size.w + size.dw, 
-        //             vertices[triangles[i - 2]][1] * size.h + size.dh];
+        var size = this.getRenderSize(this.srcImg.width, this.srcImg.height);
+        // for (var i = 0; i < vertices.length; i++) {
+        //     var plane = new THREE.Mesh(new THREE.PlaneGeometry(3, 3),
+        //         new THREE.MeshBasicMaterial({color: 0xffff00}));
+        //     plane.position.set(vertices[i][0] + size.dw, vertices[i][1] + size.dh, 1);
+        //     this.scene.add(plane);
+        // };
+        for(var i = triangles.length - 1; i > 2; i -= 3) {
+            // positions of three vertices
+            var a = [vertices[triangles[i]][0] + size.dw, 
+                    vertices[triangles[i]][1] + size.dh];
+            var b = [vertices[triangles[i - 1]][0] + size.dw, 
+                    vertices[triangles[i - 1]][1] + size.dh];
+            var c = [vertices[triangles[i - 2]][0] + size.dw, 
+                    vertices[triangles[i - 2]][1] + size.dh];
 
-        //     // fill with color in center of gravity
-        //     var x = Math.floor((vertices[triangles[i]][0] 
-        //             + vertices[triangles[i - 1]][0] 
-        //             + vertices[triangles[i - 2]][0]) / 3 
-        //             * this.polyvia.srcImg.width);
-        //     var y = Math.floor((vertices[triangles[i]][1] 
-        //             + vertices[triangles[i - 1]][1] 
-        //             + vertices[triangles[i - 2]][1]) / 3 
-        //             * this.polyvia.srcImg.height);
-        //     var id = (y * this.polyvia.srcImg.width + x) * 4;
-        //     var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
-        //             + ', ' + this.srcPixel[id + 2] + ')';
+            // fill with color in center of gravity
+            var x = Math.floor((vertices[triangles[i]][0] 
+                    + vertices[triangles[i - 1]][0] 
+                    + vertices[triangles[i - 2]][0]) / 3 / size.w
+                    * this.srcImg.width);
+            var y = Math.floor((1 - (vertices[triangles[i]][1] 
+                    + vertices[triangles[i - 1]][1] 
+                    + vertices[triangles[i - 2]][1]) / 3 / size.h)
+                    * this.srcImg.height);
+            var id = (y * this.srcImg.width + x) * 4;
+            var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
+                    + ', ' + this.srcPixel[id + 2] + ')';
 
-        //     // draw the triangle
-        //     // face mesh
-        //     var geo = new THREE.Geometry();
-        //     geo.vertices.push(new THREE.Vector3(a[0], a[1], 1));
-        //     geo.vertices.push(new THREE.Vector3(b[0], b[1], 1));
-        //     geo.vertices.push(new THREE.Vector3(c[0], c[1], 1));
-        //     geo.faces.push(new THREE.Face3(0, 1, 2));
-        //     geo.faces[0].color = new THREE.Color(rgb);
-        //     var mesh = new THREE.Mesh(geo, this.faceMaterial);
-        //     this.faceMesh.push(mesh);
-        //     this.scene.add(mesh);
+            // draw the triangle
+            // face mesh
+            var geo = new THREE.Geometry();
+            geo.vertices.push(new THREE.Vector3(a[0], a[1], 1));
+            geo.vertices.push(new THREE.Vector3(b[0], b[1], 1));
+            geo.vertices.push(new THREE.Vector3(c[0], c[1], 1));
+            geo.faces.push(new THREE.Face3(0, 1, 2));
+            geo.faces[0].color = new THREE.Color(rgb);
+            var mesh = new THREE.Mesh(geo, this.faceMaterial);
+            this.faceMesh.push(mesh);
+            this.scene.add(mesh);
 
-        //     // wireframe mesh
-        //     wireframeGeo.vertices.push(new THREE.Vector3(a[0], a[1], 2));
-        //     wireframeGeo.vertices.push(new THREE.Vector3(b[0], b[1], 2));
-        //     wireframeGeo.vertices.push(new THREE.Vector3(c[0], c[1], 2));
-        //     wireframeGeo.faces.push(new THREE.Face3(triangles.length - i - 1,
-        //             triangles.length - i, triangles.length - i + 1));
-        // }
+            // wireframe mesh
+            // wireframeGeo.vertices.push(new THREE.Vector3(a[0], a[1], 2));
+            // wireframeGeo.vertices.push(new THREE.Vector3(b[0], b[1], 2));
+            // wireframeGeo.vertices.push(new THREE.Vector3(c[0], c[1], 2));
+            // wireframeGeo.faces.push(new THREE.Face3(triangles.length - i - 1,
+            //         triangles.length - i, triangles.length - i + 1));
+        }
         // add wireframe mesh to scene
         this.wireframeMesh = new THREE.Mesh(wireframeGeo, 
                 this.wireframeMaterial);
@@ -242,15 +238,25 @@ define(function (require, exports, module) {
 
 
     // render origin image to get pixel color
-    GlRenderer.prototype.preRender = function(img) {
-        // tmp canvas
-        var canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        var srcCtx = canvas.getContext('2d');
-        srcCtx.drawImage(img, 0, 0, img.width, img.height);
+    GlRenderer.prototype.preRender = function() {
+        // original image
+        this.srcImg = new Image();
+        this.srcImg.src = this.imgPath;
 
-        this.srcPixel = srcCtx.getImageData(0, 0, img.width, img.height).data;
+        var that = this;
+        var img = this.srcImg;
+        this.srcImg.onload = function() {
+            // tmp canvas
+            var canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            var srcCtx = canvas.getContext('2d');
+            srcCtx.drawImage(img, 0, 0, img.width, img.height);
+
+            that.srcPixel = srcCtx.getImageData(0, 0, img.width, img.height).data;
+
+            that.render();
+        };
     }
 
 
