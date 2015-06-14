@@ -93,7 +93,7 @@ THREE.EdgeShader = {
 			// "gl_FragColor = vec4(vec3(sqrt(M/S)), 1.0);",
 			"vec3 color = vec3(sqrt(M/S));",
 			"float rnd = rand(vec2(vUv.xy));",
-			"if (color.x > 0.05 && color.x > rnd * 40.0) {",
+			"if (color.x > 0.05 && color.x > rnd * 20.0) {",
 				"color = vec3(1.0, 1.0, 1.0);",
 			"}",
 			"else {",

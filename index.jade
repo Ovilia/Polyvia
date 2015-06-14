@@ -8,10 +8,10 @@ html(lang="en")
     canvas(id='canvas')
 
     //- hidden elements
-    img(id='source-img', src='src/img/18.jpg')
+    img(id='source-img', src='src/img/mao.png')
     input(id='img-path', type='file')
 
-    script(type='text/javascript', src='vendor/require.js', data-main='src/js/app')
+    script(type='text/javascript', src='vendor/require.js')
     script(type='text/javascript').
         require.config({
             baseUrl: './src/js',
@@ -56,10 +56,16 @@ html(lang="en")
                 'threeShader': {
                     deps: ['three'],
                     exports: 'THREE.ShaderPass'
+                },
+                'dat': {
+                    exports: 'dat'
+                },
+                'delaunay': {
+                    exports: 'Delaunay'
                 }
             }
         });
 
         require(['app'], function() {
-            console.log('app loaded');
+            console.time('total');
         });

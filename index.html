@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><title>Polyvia</title><link href="src/css/app.css" type="text/css" rel="stylesheet"></head><body><canvas id="canvas"></canvas><img id="source-img" src="src/img/18.jpg"><input id="img-path" type="file"><script type="text/javascript" src="vendor/require.js" data-main="src/js/app"></script><script type="text/javascript">require.config({
+<!DOCTYPE html><html lang="en"><head><title>Polyvia</title><link href="src/css/app.css" type="text/css" rel="stylesheet"></head><body><canvas id="canvas"></canvas><img id="source-img" src="src/img/mao.png"><input id="img-path" type="file"><script type="text/javascript" src="vendor/require.js"></script><script type="text/javascript">require.config({
     baseUrl: './src/js',
     paths: {
         'dat': '../../vendor/dat.gui',
@@ -41,10 +41,16 @@
         'threeShader': {
             deps: ['three'],
             exports: 'THREE.ShaderPass'
+        },
+        'dat': {
+            exports: 'dat'
+        },
+        'delaunay': {
+            exports: 'Delaunay'
         }
     }
 });
 
 require(['app'], function() {
-    console.log('app loaded');
+    console.time('total');
 });</script></body></html>

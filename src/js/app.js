@@ -1,6 +1,6 @@
 require(['Polyvia', 'dat'], function(Polyvia, dat) {
 
-    var img = './src/img/3.jpg';
+    var img = './src/img/mao.png';
     var canvas = document.getElementById('canvas');
 
     // init canvas width to that of window
@@ -23,7 +23,7 @@ require(['Polyvia', 'dat'], function(Polyvia, dat) {
     // dat.gui
     var hasWireframe = true;
     var GuiConfig = function() {
-        this['Image Path'] = '3.jpg';
+        this['Image Path'] = 'me.jpg';
 
         this['Upload Image'] = function() {
             var input = document.getElementById('img-path');

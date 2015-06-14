@@ -53,34 +53,15 @@ define(function (require, exports, module) {
         console.time('preRender');
         this.preRender(this.polyvia.srcImg);
         console.timeEnd('preRender');
-    }
+    };
 
 
 
     GlRenderer.prototype.render = function() {
-        // calculate vertex positions
-        // console.time('vertex');
-        // this.vertices = this.polyvia.getVertices();
-        // console.timeEnd('vertex');
-
-        // compose triangles
-        console.time('triangle');
-        this.vertices = [];
-        this.triangles = Delaunay.triangulate(this.vertices);
-        console.timeEnd('triangle');
-
-        console.time('render');
-        // this.rerender();
-        console.timeEnd('render');
-
-
-
-        // this.renderer.render(this.scene, this.camera);
         this.rerender();
-        console.log('rerender');
 
         // this.setWireframe(this.polyvia.options.renderVertices);
-    }
+    };
 
 
 
@@ -88,7 +69,7 @@ define(function (require, exports, module) {
     GlRenderer.prototype.setWireframe = function(hasWireframe) {
         this.wireframeMesh.visible = hasWireframe;
         this.renderer.render(this.scene, this.camera);
-    }
+    };
 
 
 
@@ -109,16 +90,57 @@ define(function (require, exports, module) {
 
         // plane for render target
         var that = this;
-        var srcTexture = THREE.ImageUtils.loadTexture('../src/img/18.jpg', {}, function() {
-            that.composer.render();
-            // that.renderer.render(that.scene, that.camera);
+        var srcTexture = THREE.ImageUtils.loadTexture('../src/img/mao.png', {},
+            function() {
+                console.time('composer');
+                that.composer.render();
+                console.timeEnd('composer');
+
+                console.time('readPixels');
+                // read pixels of edge detection
+                var pixels = new Uint8Array(size.w * size.h * 4);
+                var gl = that.renderer.getContext();
+                gl.readPixels(size.ow, size.oh, size.w, size.h,
+                    gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+                console.timeEnd('readPixels');
+                
+                console.time('vertex');
+                that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
+                // append to vertex array
+                console.log(size.w, size.h);
+                var i = 0;
+                for (var x = 0; x < size.w; ++x) {
+                    for (var y = 0; y < size.h; ++y) {
+                        if (pixels[i] > 0) {
+                            // is a selected edge vertex
+                            that.vertices.push([x, y]);
+                            console.log(x, y);
+                        }
+                        // console.log(pixels[i]);
+                        i += 4;
+                    }
+                }
+                console.log('vertex cnt:', that.vertices.length);
+                console.timeEnd('vertex');
+
+                // calculate delaunay triangles
+                console.time('triangle');
+                that.triangles = Delaunay.triangulate(that.vertices);
+                console.log('triangle cnt:', that.triangles.length);
+                console.timeEnd('triangle');
+
+                // render triangle meshes
+                console.time('render');
+                that.renderTriangles();
+                console.timeEnd('render');
+                console.timeEnd('total');
         });
         srcTexture.magFilter = THREE.LinearFilter;
         srcTexture.minFilter = THREE.LinearFilter;
         this.imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(
-                size.w, size.h), new THREE.MeshBasicMaterial({
-                    map: srcTexture
-                }));
+            size.w, size.h), new THREE.MeshBasicMaterial({
+                map: srcTexture
+        }));
         this.imgMesh.position.z = -1;
         this.scene.add(this.imgMesh);
 
@@ -133,14 +155,24 @@ define(function (require, exports, module) {
         this.composer.addPass(renderPass);
         this.composer.addPass(edgeShader);
         this.composer.addPass(effectCopy);
+    };
 
-        console.log(this.composer.renderTarget2);
-        // composer.render();
 
-        // this.faceMesh = [];
-        // var wireframeGeo = new THREE.Geometry();
-        // var vertices = this.vertices;
-        // var triangles = this.triangles;
+
+    // render triangle meshes to screen
+    GlRenderer.prototype.renderTriangles = function() {
+        this.faceMesh = [];
+        var wireframeGeo = new THREE.Geometry();
+        var vertices = this.vertices;
+        var triangles = this.triangles;
+        var size = this.getRenderSize(this.polyvia.srcImg.width,
+                this.polyvia.srcImg.height);
+        for (var i = 0; i < vertices.length; i++) {
+            var plane = new THREE.Mesh(new THREE.PlaneGeometry(3, 3),
+                new THREE.MeshBasicMaterial({color: 0xffff00}));
+            plane.position.set(vertices[i][0] + size.dw, vertices[i][1] + size.dh, 1);
+            this.scene.add(plane);
+        };
         // for(var i = triangles.length - 1; i > 2; i -= 3) {
         //     // positions of three vertices
         //     var a = [vertices[triangles[i]][0] * size.w + size.dw, 
@@ -166,9 +198,9 @@ define(function (require, exports, module) {
         //     // draw the triangle
         //     // face mesh
         //     var geo = new THREE.Geometry();
-        //     geo.vertices.push(new THREE.Vector3(a[0], a[1], 0));
-        //     geo.vertices.push(new THREE.Vector3(b[0], b[1], 0));
-        //     geo.vertices.push(new THREE.Vector3(c[0], c[1], 0));
+        //     geo.vertices.push(new THREE.Vector3(a[0], a[1], 1));
+        //     geo.vertices.push(new THREE.Vector3(b[0], b[1], 1));
+        //     geo.vertices.push(new THREE.Vector3(c[0], c[1], 1));
         //     geo.faces.push(new THREE.Face3(0, 1, 2));
         //     geo.faces[0].color = new THREE.Color(rgb);
         //     var mesh = new THREE.Mesh(geo, this.faceMaterial);
@@ -176,18 +208,18 @@ define(function (require, exports, module) {
         //     this.scene.add(mesh);
 
         //     // wireframe mesh
-        //     wireframeGeo.vertices.push(new THREE.Vector3(a[0], a[1], 1));
-        //     wireframeGeo.vertices.push(new THREE.Vector3(b[0], b[1], 1));
-        //     wireframeGeo.vertices.push(new THREE.Vector3(c[0], c[1], 1));
+        //     wireframeGeo.vertices.push(new THREE.Vector3(a[0], a[1], 2));
+        //     wireframeGeo.vertices.push(new THREE.Vector3(b[0], b[1], 2));
+        //     wireframeGeo.vertices.push(new THREE.Vector3(c[0], c[1], 2));
         //     wireframeGeo.faces.push(new THREE.Face3(triangles.length - i - 1,
         //             triangles.length - i, triangles.length - i + 1));
         // }
-        // // add wireframe mesh to scene
-        // this.wireframeMesh = new THREE.Mesh(wireframeGeo, 
-        //         this.wireframeMaterial);
-        // this.scene.add(this.wireframeMesh);
+        // add wireframe mesh to scene
+        this.wireframeMesh = new THREE.Mesh(wireframeGeo, 
+                this.wireframeMaterial);
+        this.scene.add(this.wireframeMesh);
 
-        // this.renderer.render(this.scene, this.camera);
+        this.renderer.render(this.scene, this.camera);
     }
 
 
@@ -239,10 +271,10 @@ define(function (require, exports, module) {
              * |----------------------|
              */
             // clip left and right part of the canvas
-            var w = ch / ih * iw;
+            var w = Math.floor(ch / ih * iw);
             var h = ch;
-            var dw = (cw - w) / 2; // offset
-            var dh = 0;
+            var ow = Math.floor((cw - w) / 2); // offset
+            var oh = 0;
         } else {
             /* |----------------------|
              * |                      |
@@ -255,16 +287,18 @@ define(function (require, exports, module) {
              */
             // clip top and bottom part of the canvas
             var w = cw;
-            var h = cw / iw * ih;
-            var dw = 0;
-            var dh = (ch - h) / 2;
+            var h = Math.floor(cw / iw * ih);
+            var ow = 0;
+            var oh = Math.floor((ch - h) / 2);
         }
 
         return {
             w: w,
             h: h,
-            dw: dw - cw / 2,
-            dh: dh - ch / 2
+            dw: Math.floor(ow - cw / 2),
+            dh: Math.floor(oh - ch / 2),
+            ow: ow,
+            oh: oh
         };
     }
 
