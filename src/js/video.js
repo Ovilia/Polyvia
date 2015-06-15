@@ -43,15 +43,10 @@ require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
     function renderFrame() {
         stats.begin();
 
-        // if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            // setTimeout(function() {
-
-            renderer.render();
-        // }, 1000);
-        // }
+        renderer.render();
 
         stats.end();
 
-        // requestAnimationFrame(renderFrame);
+        requestAnimationFrame(renderFrame);
     }
 });
