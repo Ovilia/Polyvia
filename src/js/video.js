@@ -44,11 +44,14 @@ require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
         stats.begin();
 
         // if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            // setTimeout(function() {
+
             renderer.render();
+        // }, 1000);
         // }
 
         stats.end();
 
-        requestAnimationFrame(renderFrame);
+        // requestAnimationFrame(renderFrame);
     }
 });

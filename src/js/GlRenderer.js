@@ -79,6 +79,11 @@ define(function (require, exports, module) {
             this.videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
             this.videoMesh.position.set(0, 0, -1);
             this.scene.add(this.videoMesh);
+
+            // this.tmpCanvas = document.createElement('canvas');
+            // this.tmpCanvas.width = window.innerWidth;
+            // this.tmpCanvas.height = window.innerHeight;
+            // document.body.appendChild(this.tmpCanvas);
         }
     };
 
@@ -147,7 +152,8 @@ define(function (require, exports, module) {
             this.scene.add(this.imgMesh);
         } else {
             // video
-            this.videoImageContext.drawImage(this.video, 0, 0);
+            // var ctx = this.tmpCanvas.getContext('2d');
+            // ctx.drawImage(this.video, 0, 0);
             if (this.videoTexture) {
                 this.videoTexture.needsUpdate = true;
             }
@@ -165,6 +171,7 @@ define(function (require, exports, module) {
             var gl = that.renderer.getContext();
             gl.readPixels(size.ow, size.oh, size.w, size.h,
                 gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            console.log(pixels);
             console.timeEnd('readPixels');
             
             console.time('vertex');
@@ -192,7 +199,7 @@ define(function (require, exports, module) {
 
             // render triangle meshes
             console.time('render');
-            that.renderTriangles();
+            // that.renderTriangles();
             console.timeEnd('render');
         }
     };
@@ -210,11 +217,11 @@ define(function (require, exports, module) {
         var ih = this.isImg ? this.srcImg.height : this.video.height;
         for(var i = triangles.length - 1; i > 2; i -= 3) {
             // positions of three vertices
-            var a = [vertices[triangles[i]][0] + size.dw, 
+            var a = [vertices[triangles[i]][0] + size.dw,
                     vertices[triangles[i]][1] + size.dh];
-            var b = [vertices[triangles[i - 1]][0] + size.dw, 
+            var b = [vertices[triangles[i - 1]][0] + size.dw,
                     vertices[triangles[i - 1]][1] + size.dh];
-            var c = [vertices[triangles[i - 2]][0] + size.dw, 
+            var c = [vertices[triangles[i - 2]][0] + size.dw,
                     vertices[triangles[i - 2]][1] + size.dh];
 
             // fill with color in center of gravity
@@ -300,6 +307,7 @@ define(function (require, exports, module) {
         } else {
             this.srcPixel = this.videoImageContext.getImageData(0, 0,
                 this.video.width, this.video.height).data;
+            // console.log(this.video.width, this.video.height);
         }
     }
 
