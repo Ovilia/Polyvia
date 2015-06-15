@@ -13,11 +13,15 @@ define(function (require, exports, module) {
 
     var Delaunay = require('delaunay');
 
-    function GlRenderer(imgPath, canvas) {
-        this.imgPath = imgPath;
+    function GlRenderer(canvas, isImg, imgPath) {
         this.canvas = canvas;
+        this.isImg = isImg;
+        if (!isImg) {
+            this.video = imgPath;
+        }
 
         this.init();
+        this.updateImage(imgPath);
     };
 
 
@@ -30,12 +34,67 @@ define(function (require, exports, module) {
         this.renderer.setClearColor(0x0);
 
         this.scene = new THREE.Scene();
+        this.finalScene = new THREE.Scene();
         
         this.camera = new THREE.OrthographicCamera(-this.canvas.width / 2,
                 this.canvas.width / 2, this.canvas.height / 2, 
                 -this.canvas.height / 2, 0, 10);
         this.camera.position.set(0, 0, 5);
         this.scene.add(this.camera);
+        this.finalScene.add(this.camera);
+
+        var renderPass = new THREE.RenderPass(this.scene, this.camera);
+
+        var edgeShader = new THREE.ShaderPass(THREE.EdgeShader);
+
+        var effectCopy = new THREE.ShaderPass(THREE.CopyShader);
+        effectCopy.renderToScreen = true;
+
+        this.composer = new THREE.EffectComposer(this.renderer);
+        this.composer.addPass(renderPass);
+        this.composer.addPass(edgeShader);
+        this.composer.addPass(effectCopy);
+
+        if (!this.isImg) {
+            // video texture
+            var videoImage = document.createElement('canvas');
+            videoImage.width = this.canvas.width;
+            videoImage.height = this.canvas.height;
+
+            this.videoImageContext = videoImage.getContext('2d');
+            // background color if no video present
+            this.videoImageContext.fillStyle = '#000000';
+            this.videoImageContext.fillRect(0, 0, videoImage.width, videoImage.height);
+
+            this.videoTexture = new THREE.Texture(videoImage);
+            this.videoTexture.minFilter = THREE.LinearFilter;
+            this.videoTexture.magFilter = THREE.LinearFilter;
+            
+            var videoMaterial = new THREE.MeshBasicMaterial({
+                map: this.videoTexture,
+                overdraw: true,
+                side:THREE.DoubleSide
+            });
+            var videoGeometry = new THREE.PlaneGeometry(videoImage.width, videoImage.height);
+            this.videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
+            this.videoMesh.position.set(0, 0, -1);
+            this.scene.add(this.videoMesh);
+        }
+    };
+
+
+
+    // display and hide wireframe
+    GlRenderer.prototype.setWireframe = function(hasWireframe) {
+        this.wireframeMesh.visible = hasWireframe;
+        this.renderer.render(this.scene, this.camera);
+    };
+
+
+
+    // change to a new image
+    GlRenderer.prototype.updateImage = function(imgPath) {
+        this.imgPath = imgPath;
 
         // material for vertex wireframe
         this.wireframeMaterial = new THREE.MeshBasicMaterial({
@@ -59,99 +118,83 @@ define(function (require, exports, module) {
 
 
 
-    GlRenderer.prototype.render = function() {
-        this.rerender();
-    };
-
-
-
-    // display and hide wireframe
-    GlRenderer.prototype.setWireframe = function(hasWireframe) {
-        this.wireframeMesh.visible = hasWireframe;
-        this.renderer.render(this.scene, this.camera);
-    };
-
-
-
     // render again without changing triangle positions
-    GlRenderer.prototype.rerender = function() {
+    GlRenderer.prototype.render = function() {
         // remove meshes from scene
         if (this.faceMesh) {
             for (var i = 0; i < this.faceMesh.length; ++i) {
-                this.scene.remove(this.faceMesh[i]);
+                this.finalScene.remove(this.faceMesh[i]);
             }
         }
         if (this.wireframeMesh) {
-            this.scene.remove(this.wireframeMesh);
+            this.finalScene.remove(this.wireframeMesh);
         }
 
-        var size = this.getRenderSize(this.srcImg.width, this.srcImg.height);
+        var size = this.getRenderSize();
 
         // plane for render target
         var that = this;
-        var srcTexture = THREE.ImageUtils.loadTexture(this.imgPath, {},
-            function() {
-                console.time('composer');
-                that.composer.render();
-                console.timeEnd('composer');
+        if (this.isImg) {
+            // image
+            var srcTexture = THREE.ImageUtils.loadTexture(this.imgPath, {}, process);
+            srcTexture.magFilter = THREE.LinearFilter;
+            srcTexture.minFilter = THREE.LinearFilter;
+            this.imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(
+                size.w, size.h), new THREE.MeshBasicMaterial({
+                    map: srcTexture
+            }));
+            this.imgMesh.position.z = -1;
+            this.scene.add(this.imgMesh);
+        } else {
+            // video
+            this.videoImageContext.drawImage(this.video, 0, 0);
+            if (this.videoTexture) {
+                this.videoTexture.needsUpdate = true;
+            }
+            process();
+        }
 
-                console.time('readPixels');
-                // read pixels of edge detection
-                var pixels = new Uint8Array(size.w * size.h * 4);
-                var gl = that.renderer.getContext();
-                gl.readPixels(size.ow, size.oh, size.w, size.h,
-                    gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-                console.timeEnd('readPixels');
-                
-                console.time('vertex');
-                that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
-                // append to vertex array
-                console.log(size.w, size.h);
-                var i = 0;
-                for (var y = 0; y < size.h; ++y) {
-                    for (var x = 0; x < size.w; ++x) {
-                        if (pixels[i] > 0) {
-                            // is a selected edge vertex
-                            that.vertices.push([x, y]);
-                        }
-                        i += 4;
+        function process() {
+            console.time('composer');
+            that.composer.render();
+            console.timeEnd('composer');
+
+            console.time('readPixels');
+            // read pixels of edge detection
+            var pixels = new Uint8Array(size.w * size.h * 4);
+            var gl = that.renderer.getContext();
+            gl.readPixels(size.ow, size.oh, size.w, size.h,
+                gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            console.timeEnd('readPixels');
+            
+            console.time('vertex');
+            that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
+            // append to vertex array
+            console.log(size.w, size.h);
+            var i = 0;
+            for (var y = 0; y < size.h; ++y) {
+                for (var x = 0; x < size.w; ++x) {
+                    if (pixels[i] > 0) {
+                        // is a selected edge vertex
+                        that.vertices.push([x, y]);
                     }
+                    i += 4;
                 }
-                console.log('vertex cnt:', that.vertices.length);
-                console.timeEnd('vertex');
+            }
+            console.log('vertex cnt:', that.vertices.length);
+            console.timeEnd('vertex');
 
-                // calculate delaunay triangles
-                console.time('triangle');
-                that.triangles = Delaunay.triangulate(that.vertices);
-                console.log('triangle cnt:', that.triangles.length);
-                console.timeEnd('triangle');
+            // calculate delaunay triangles
+            console.time('triangle');
+            that.triangles = Delaunay.triangulate(that.vertices);
+            console.log('triangle cnt:', that.triangles.length);
+            console.timeEnd('triangle');
 
-                // render triangle meshes
-                console.time('render');
-                that.renderTriangles();
-                console.timeEnd('render');
-                console.timeEnd('total');
-        });
-        srcTexture.magFilter = THREE.LinearFilter;
-        srcTexture.minFilter = THREE.LinearFilter;
-        this.imgMesh = new THREE.Mesh(new THREE.PlaneGeometry(
-            size.w, size.h), new THREE.MeshBasicMaterial({
-                map: srcTexture
-        }));
-        this.imgMesh.position.z = -1;
-        this.scene.add(this.imgMesh);
-
-        var renderPass = new THREE.RenderPass(this.scene, this.camera);
-
-        var edgeShader = new THREE.ShaderPass(THREE.EdgeShader);
-
-        var effectCopy = new THREE.ShaderPass(THREE.CopyShader);
-        effectCopy.renderToScreen = true;
-
-        this.composer = new THREE.EffectComposer(this.renderer);
-        this.composer.addPass(renderPass);
-        this.composer.addPass(edgeShader);
-        this.composer.addPass(effectCopy);
+            // render triangle meshes
+            console.time('render');
+            that.renderTriangles();
+            console.timeEnd('render');
+        }
     };
 
 
@@ -162,13 +205,9 @@ define(function (require, exports, module) {
         var wireframeGeo = new THREE.Geometry();
         var vertices = this.vertices;
         var triangles = this.triangles;
-        var size = this.getRenderSize(this.srcImg.width, this.srcImg.height);
-        // for (var i = 0; i < vertices.length; i++) {
-        //     var plane = new THREE.Mesh(new THREE.PlaneGeometry(3, 3),
-        //         new THREE.MeshBasicMaterial({color: 0xffff00}));
-        //     plane.position.set(vertices[i][0] + size.dw, vertices[i][1] + size.dh, 1);
-        //     this.scene.add(plane);
-        // };
+        var size = this.getRenderSize();
+        var iw = this.isImg ? this.srcImg.width : this.video.width;
+        var ih = this.isImg ? this.srcImg.height : this.video.height;
         for(var i = triangles.length - 1; i > 2; i -= 3) {
             // positions of three vertices
             var a = [vertices[triangles[i]][0] + size.dw, 
@@ -181,13 +220,11 @@ define(function (require, exports, module) {
             // fill with color in center of gravity
             var x = Math.floor((vertices[triangles[i]][0] 
                     + vertices[triangles[i - 1]][0] 
-                    + vertices[triangles[i - 2]][0]) / 3 / size.w
-                    * this.srcImg.width);
+                    + vertices[triangles[i - 2]][0]) / 3 / size.w * iw);
             var y = Math.floor((1 - (vertices[triangles[i]][1] 
                     + vertices[triangles[i - 1]][1] 
-                    + vertices[triangles[i - 2]][1]) / 3 / size.h)
-                    * this.srcImg.height);
-            var id = (y * this.srcImg.width + x) * 4;
+                    + vertices[triangles[i - 2]][1]) / 3 / size.h) * ih);
+            var id = (y * iw + x) * 4;
             var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
                     + ', ' + this.srcPixel[id + 2] + ')';
 
@@ -201,7 +238,7 @@ define(function (require, exports, module) {
             geo.faces[0].color = new THREE.Color(rgb);
             var mesh = new THREE.Mesh(geo, this.faceMaterial);
             this.faceMesh.push(mesh);
-            this.scene.add(mesh);
+            this.finalScene.add(mesh);
 
             // wireframe mesh
             // wireframeGeo.vertices.push(new THREE.Vector3(a[0], a[1], 2));
@@ -211,11 +248,13 @@ define(function (require, exports, module) {
             //         triangles.length - i, triangles.length - i + 1));
         }
         // add wireframe mesh to scene
-        this.wireframeMesh = new THREE.Mesh(wireframeGeo, 
-                this.wireframeMaterial);
-        this.scene.add(this.wireframeMesh);
+        // this.wireframeMesh = new THREE.Mesh(wireframeGeo, 
+        //         this.wireframeMaterial);
+        // this.finalScene.add(this.wireframeMesh);
 
-        this.renderer.render(this.scene, this.camera);
+        console.time('finalRender');
+        this.renderer.render(this.finalScene, this.camera);
+        console.timeEnd('finalRender');
     }
 
 
@@ -231,7 +270,7 @@ define(function (require, exports, module) {
         this.camera.right = w / 2;
         this.camera.top = -h / 2;
         this.camera.right = h / 2;
-        this.rerender();
+        this.render();
         // console.log(this.camera.top);
     }
 
@@ -239,29 +278,37 @@ define(function (require, exports, module) {
 
     // render origin image to get pixel color
     GlRenderer.prototype.preRender = function() {
-        // original image
-        this.srcImg = new Image();
-        this.srcImg.src = this.imgPath;
+        if (this.isImg) {
+            // original image
+            this.srcImg = new Image();
+            this.srcImg.src = this.imgPath;
 
-        var that = this;
-        var img = this.srcImg;
-        this.srcImg.onload = function() {
-            // tmp canvas
-            var canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            var srcCtx = canvas.getContext('2d');
-            srcCtx.drawImage(img, 0, 0, img.width, img.height);
+            var that = this;
+            var img = this.srcImg;
+            this.srcImg.onload = function() {
+                // tmp canvas
+                var canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                var srcCtx = canvas.getContext('2d');
+                srcCtx.drawImage(img, 0, 0, img.width, img.height);
 
-            that.srcPixel = srcCtx.getImageData(0, 0, img.width, img.height).data;
+                that.srcPixel = srcCtx.getImageData(0, 0, img.width, img.height).data;
 
-            that.render();
-        };
+                that.render();
+            };
+        } else {
+            this.srcPixel = this.videoImageContext.getImageData(0, 0,
+                this.video.width, this.video.height).data;
+        }
     }
 
 
 
     GlRenderer.prototype.getRenderSize = function(imgWidth, imgHeight) {
+        var imgWidth = this.isImg ? this.srcImg.width : this.video.width;
+        var imgHeight = this.isImg ? this.srcImg.height : this.video.height;
+
         var cw = this.canvas.width;
         var ch = this.canvas.height;
 

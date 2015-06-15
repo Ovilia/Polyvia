@@ -7,10 +7,6 @@ html(lang="en")
   body
     canvas(id='canvas')
 
-    //- hidden elements
-    img(id='source-img', src='src/img/mao.png')
-    input(id='img-path', type='file')
-
     script(type='text/javascript', src='vendor/require.js')
     script(type='text/javascript').
         require.config({
@@ -24,7 +20,8 @@ html(lang="en")
                 'threeComposer': '../../vendor/three.EffectComposer',
                 'threeMask': '../../vendor/three.MaskPass',
                 'threeRender': '../../vendor/three.RenderPass',
-                'threeShader': '../../vendor/three.ShaderPass'
+                'threeShader': '../../vendor/three.ShaderPass',
+                'stats': '../../vendor/stats.min'
             },
             shim: {
                 'three': {
@@ -62,10 +59,13 @@ html(lang="en")
                 },
                 'delaunay': {
                     exports: 'Delaunay'
+                },
+                'stats': {
+                    exports: 'Stats'
                 }
             }
         });
 
-        require(['image'], function() {
-            console.time('total');
+        require(['video'], function() {
+            
         });

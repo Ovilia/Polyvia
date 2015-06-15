@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><title>Polyvia</title><link href="src/css/app.css" type="text/css" rel="stylesheet"></head><body><canvas id="canvas"></canvas><img id="source-img" src="src/img/mao.png"><input id="img-path" type="file"><script type="text/javascript" src="vendor/require.js"></script><script type="text/javascript">require.config({
+<!DOCTYPE html><html lang="en"><head><title>Polyvia</title><link href="src/css/app.css" type="text/css" rel="stylesheet"></head><body><canvas id="canvas"></canvas><script type="text/javascript" src="vendor/require.js"></script><script type="text/javascript">require.config({
     baseUrl: './src/js',
     paths: {
         'dat': '../../vendor/dat.gui',
@@ -9,7 +9,8 @@
         'threeComposer': '../../vendor/three.EffectComposer',
         'threeMask': '../../vendor/three.MaskPass',
         'threeRender': '../../vendor/three.RenderPass',
-        'threeShader': '../../vendor/three.ShaderPass'
+        'threeShader': '../../vendor/three.ShaderPass',
+        'stats': '../../vendor/stats.min'
     },
     shim: {
         'three': {
@@ -47,10 +48,13 @@
         },
         'delaunay': {
             exports: 'Delaunay'
+        },
+        'stats': {
+            exports: 'Stats'
         }
     }
 });
 
-require(['image'], function() {
-    console.time('total');
+require(['video'], function() {
+    
 });</script></body></html>
