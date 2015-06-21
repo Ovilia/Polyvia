@@ -32,7 +32,8 @@ require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
                 // edgeCanvas.width = this.videoWidth;
                 // edgeCanvas.height = this.videoHeight;
 
-                renderer = new GlRenderer(canvas, false, video);
+                renderer = new GlRenderer(canvas, false, video, 
+                    this.videoWidth, this.videoHeight);
                 renderFrame();
             };
             video.width = canvas.width / 2;

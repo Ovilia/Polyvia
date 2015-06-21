@@ -13,15 +13,19 @@ define(function (require, exports, module) {
 
     var Delaunay = require('delaunay');
 
-    function GlRenderer(canvas, isImg, imgPath) {
+    function GlRenderer(canvas, isImg, imgPath, videoWidth, videoHeight) {
         this.canvas = canvas;
         this.isImg = isImg;
         if (!isImg) {
             this.video = imgPath;
+            this.videoWidth = videoWidth;
+            this.videoHeight = videoHeight;
         }
 
         this.init();
         this.updateImage(imgPath);
+
+        window.renderer = this;
     };
 
 
@@ -77,19 +81,13 @@ define(function (require, exports, module) {
             
             var videoMaterial = new THREE.MeshBasicMaterial({
                 map: this.videoTexture,
-                overdraw: true,
-                // side:THREE.DoubleSide
+                overdraw: true
             });
             var videoGeometry = new THREE.PlaneGeometry(this.videoImage.width,
                 this.videoImage.height);
             this.videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
             this.videoMesh.position.set(0, 0, -1);
             this.scene.add(this.videoMesh);
-
-            // this.tmpCanvas = document.createElement('canvas');
-            // this.tmpCanvas.width = window.innerWidth;
-            // this.tmpCanvas.height = window.innerHeight;
-            // document.body.appendChild(this.videoImage);
         }
     };
 
@@ -140,9 +138,11 @@ define(function (require, exports, module) {
             for (var i = 0; i < this.faceMesh.length; ++i) {
                 this.finalScene.remove(this.faceMesh[i]);
             }
+            this.faceMesh[i] = [];
         }
         if (this.wireframeMesh) {
             this.finalScene.remove(this.wireframeMesh);
+            this.wireframeMesh = null;
         }
 
         var size = this.getRenderSize();
@@ -162,12 +162,7 @@ define(function (require, exports, module) {
             this.scene.add(this.imgMesh);
         } else {
             // video
-            // var ctx = this.tmpCanvas.getContext('2d');
-            // ctx.drawImage(this.video, 0, 0);
             this.videoImageContext.drawImage(this.video, 0, 0);
-            // this.renderer.render(this.scene, this.camera);
-            // this.srcPixel = this.videoImageContext.getImageData(0, 0,
-            //     this.video.width, this.video.height).data;
             if (this.videoTexture) {
                 this.videoTexture.needsUpdate = true;
             }
@@ -175,53 +170,51 @@ define(function (require, exports, module) {
         }
 
         function process() {
-            console.time('composer');
+            // console.time('composer');
             that.composer.render();
-            console.timeEnd('composer');
+            // console.timeEnd('composer');
 
-            console.time('readPixels');
+            // console.time('readPixels');
             // read pixels of edge detection
             var pixels = new Uint8Array(size.w * size.h * 4);
             var gl = that.renderer.getContext();
             gl.readPixels(size.ow, size.oh, size.w, size.h,
                 gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-
-            var cnt = 0;
-            for (var i = 0; i < pixels.length; i += 4) {
-                if (pixels[i] != 0) {
-                    ++cnt;
+            // console.timeEnd('readPixels');
+            
+            console.time('vertex');
+            that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
+            // append to vertex array
+            // console.log(size.w, size.h);
+            var i = 0;
+            var arr = [];
+            var len = pixels.length / 4;
+            var loops = 0;
+            for (var i = 0; i < 3000 && loops < 20000; ++i, ++loops) {
+                var id = Math.floor(Math.random() * len);
+                var x = id % size.w;
+                var y = Math.floor(id / size.w);
+                var red = pixels[id * 4];
+                if (red > 20 || red > Math.random() * 1000) {
+                    // is a selected edge vertex
+                    that.vertices.push([x, y]);
+                } else {
+                    --i;
                 }
             }
-            console.log('none zero:', cnt);
-            console.timeEnd('readPixels');
-            
-            // console.time('vertex');
-            // that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
-            // // append to vertex array
-            // console.log(size.w, size.h);
-            // var i = 0;
-            // for (var y = 0; y < size.h; ++y) {
-            //     for (var x = 0; x < size.w; ++x) {
-            //         if (pixels[i] > 0) {
-            //             // is a selected edge vertex
-            //             that.vertices.push([x, y]);
-            //         }
-            //         i += 4;
-            //     }
-            // }
-            // console.log('vertex cnt:', that.vertices.length);
-            // console.timeEnd('vertex');
+            console.log('vertex cnt:', that.vertices.length);
+            console.timeEnd('vertex');
 
-            // // calculate delaunay triangles
-            // console.time('triangle');
-            // that.triangles = Delaunay.triangulate(that.vertices);
+            // calculate delaunay triangles
+            console.time('triangle');
+            that.triangles = Delaunay.triangulate(that.vertices);
             // console.log('triangle cnt:', that.triangles.length);
-            // console.timeEnd('triangle');
+            console.timeEnd('triangle');
 
-            // // render triangle meshes
-            // console.time('render');
-            // // that.renderTriangles();
-            // console.timeEnd('render');
+            // render triangle meshes
+            console.time('render');
+            that.renderTriangles();
+            console.timeEnd('render');
         }
     };
 
@@ -325,11 +318,10 @@ define(function (require, exports, module) {
 
                 that.render();
             };
-        // } else {
-        //     this.videoImageContext.drawImage(this.video, 0, 0);
-        //     this.srcPixel = this.videoImageContext.getImageData(0, 0,
-        //         this.video.width, this.video.height).data;
-            // console.log(this.video.width, this.video.height);
+        } else {
+            // original video
+            this.srcPixel = this.videoImageContext.getImageData(0, 0,
+                canvas.width, canvas.height).data;
         }
     }
 
