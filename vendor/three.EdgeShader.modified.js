@@ -52,6 +52,10 @@ THREE.EdgeShader = {
 		"const mat3 g7 = mat3( -0.3333333432674408, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, 0.6666666865348816, 0.1666666716337204, -0.3333333432674408, 0.1666666716337204, -0.3333333432674408 );",
 		"const mat3 g8 = mat3( 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408, 0.3333333432674408 );",
 
+		"float rand(vec2 co){",
+    		"return fract(sin(dot(co.xy, vec2(12.9898, 78.233))) * 43758.5453);",
+    	"}",
+
 		"void main(void)",
 		"{",
 
@@ -86,8 +90,18 @@ THREE.EdgeShader = {
 			"float M = (cnv[0] + cnv[1]) + (cnv[2] + cnv[3]);",
 			"float S = (cnv[4] + cnv[5]) + (cnv[6] + cnv[7]) + (cnv[8] + M);",
 
-			"gl_FragColor = vec4(vec3(sqrt(M/S)), 1.0);",
-		"}",
+			// "gl_FragColor = vec4(vec3(sqrt(M/S)), 1.0);",
+			"vec3 color = vec3(sqrt(M/S));",
+			"float rnd = rand(vec2(vUv.xy));",
+			"if (color.x > 0.05 && color.x > rnd * 5.0 || rnd > 0.9999) {",
+				"color = vec3(1.0, 1.0, 1.0);",
+			"}",
+			"else {",
+				"color = vec3(0.0, 0.0, 0.0);",
+			"}",
+			// "vec3 rnd = vec3(rand(vec2(vUv.xy), rand(vUv.yz), rand(vUv.zx));",
+			"gl_FragColor = vec4(color, 1.0);",
+		"}"
 
 	].join("\n")
 };

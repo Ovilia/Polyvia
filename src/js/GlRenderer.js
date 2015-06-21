@@ -43,6 +43,8 @@ define(function (require, exports, module) {
         this.scene.add(this.camera);
         this.finalScene.add(this.camera);
 
+
+
         var renderPass = new THREE.RenderPass(this.scene, this.camera);
 
         var edgeShader = new THREE.ShaderPass(THREE.EdgeShader);
@@ -55,27 +57,31 @@ define(function (require, exports, module) {
         this.composer.addPass(edgeShader);
         this.composer.addPass(effectCopy);
 
-        if (!this.isImg) {
-            // video texture
-            var videoImage = document.createElement('canvas');
-            videoImage.width = this.canvas.width;
-            videoImage.height = this.canvas.height;
 
-            this.videoImageContext = videoImage.getContext('2d');
+
+        if (!this.isImg) {
+            // video texture, for rendering edge texture
+            this.videoImage = document.createElement('canvas');
+            this.videoImage.width = this.canvas.width;
+            this.videoImage.height = this.canvas.height;
+
+            this.videoImageContext = this.videoImage.getContext('2d');
             // background color if no video present
             this.videoImageContext.fillStyle = '#000000';
-            this.videoImageContext.fillRect(0, 0, videoImage.width, videoImage.height);
+            this.videoImageContext.fillRect(0, 0, this.videoImage.width, 
+                this.videoImage.height);
 
-            this.videoTexture = new THREE.Texture(videoImage);
+            this.videoTexture = new THREE.Texture(this.videoImage);
             this.videoTexture.minFilter = THREE.LinearFilter;
             this.videoTexture.magFilter = THREE.LinearFilter;
             
             var videoMaterial = new THREE.MeshBasicMaterial({
                 map: this.videoTexture,
                 overdraw: true,
-                side:THREE.DoubleSide
+                // side:THREE.DoubleSide
             });
-            var videoGeometry = new THREE.PlaneGeometry(videoImage.width, videoImage.height);
+            var videoGeometry = new THREE.PlaneGeometry(this.videoImage.width,
+                this.videoImage.height);
             this.videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
             this.videoMesh.position.set(0, 0, -1);
             this.scene.add(this.videoMesh);
@@ -83,7 +89,7 @@ define(function (require, exports, module) {
             // this.tmpCanvas = document.createElement('canvas');
             // this.tmpCanvas.width = window.innerWidth;
             // this.tmpCanvas.height = window.innerHeight;
-            // document.body.appendChild(this.tmpCanvas);
+            // document.body.appendChild(this.videoImage);
         }
     };
 
@@ -125,6 +131,10 @@ define(function (require, exports, module) {
 
     // render again without changing triangle positions
     GlRenderer.prototype.render = function() {
+        if (!this.isImg) {
+            this.preRender();
+        }
+
         // remove meshes from scene
         if (this.faceMesh) {
             for (var i = 0; i < this.faceMesh.length; ++i) {
@@ -154,6 +164,10 @@ define(function (require, exports, module) {
             // video
             // var ctx = this.tmpCanvas.getContext('2d');
             // ctx.drawImage(this.video, 0, 0);
+            this.videoImageContext.drawImage(this.video, 0, 0);
+            // this.renderer.render(this.scene, this.camera);
+            // this.srcPixel = this.videoImageContext.getImageData(0, 0,
+            //     this.video.width, this.video.height).data;
             if (this.videoTexture) {
                 this.videoTexture.needsUpdate = true;
             }
@@ -171,36 +185,43 @@ define(function (require, exports, module) {
             var gl = that.renderer.getContext();
             gl.readPixels(size.ow, size.oh, size.w, size.h,
                 gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-            console.log(pixels);
-            console.timeEnd('readPixels');
-            
-            console.time('vertex');
-            that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
-            // append to vertex array
-            console.log(size.w, size.h);
-            var i = 0;
-            for (var y = 0; y < size.h; ++y) {
-                for (var x = 0; x < size.w; ++x) {
-                    if (pixels[i] > 0) {
-                        // is a selected edge vertex
-                        that.vertices.push([x, y]);
-                    }
-                    i += 4;
+
+            var cnt = 0;
+            for (var i = 0; i < pixels.length; i += 4) {
+                if (pixels[i] != 0) {
+                    ++cnt;
                 }
             }
-            console.log('vertex cnt:', that.vertices.length);
-            console.timeEnd('vertex');
+            console.log('none zero:', cnt);
+            console.timeEnd('readPixels');
+            
+            // console.time('vertex');
+            // that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
+            // // append to vertex array
+            // console.log(size.w, size.h);
+            // var i = 0;
+            // for (var y = 0; y < size.h; ++y) {
+            //     for (var x = 0; x < size.w; ++x) {
+            //         if (pixels[i] > 0) {
+            //             // is a selected edge vertex
+            //             that.vertices.push([x, y]);
+            //         }
+            //         i += 4;
+            //     }
+            // }
+            // console.log('vertex cnt:', that.vertices.length);
+            // console.timeEnd('vertex');
 
-            // calculate delaunay triangles
-            console.time('triangle');
-            that.triangles = Delaunay.triangulate(that.vertices);
-            console.log('triangle cnt:', that.triangles.length);
-            console.timeEnd('triangle');
+            // // calculate delaunay triangles
+            // console.time('triangle');
+            // that.triangles = Delaunay.triangulate(that.vertices);
+            // console.log('triangle cnt:', that.triangles.length);
+            // console.timeEnd('triangle');
 
-            // render triangle meshes
-            console.time('render');
-            // that.renderTriangles();
-            console.timeEnd('render');
+            // // render triangle meshes
+            // console.time('render');
+            // // that.renderTriangles();
+            // console.timeEnd('render');
         }
     };
 
@@ -304,9 +325,10 @@ define(function (require, exports, module) {
 
                 that.render();
             };
-        } else {
-            this.srcPixel = this.videoImageContext.getImageData(0, 0,
-                this.video.width, this.video.height).data;
+        // } else {
+        //     this.videoImageContext.drawImage(this.video, 0, 0);
+        //     this.srcPixel = this.videoImageContext.getImageData(0, 0,
+        //         this.video.width, this.video.height).data;
             // console.log(this.video.width, this.video.height);
         }
     }
