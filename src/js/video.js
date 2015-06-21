@@ -32,16 +32,15 @@ require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
                 // edgeCanvas.width = this.videoWidth;
                 // edgeCanvas.height = this.videoHeight;
 
-                renderer = new GlRenderer(canvas, false, video, 
-                    this.videoWidth, this.videoHeight);
+                renderer = new GlRenderer(canvas, false, video, this);
                 renderFrame();
             };
             video.width = canvas.width / 2;
             video.height = canvas.height / 2;
             video.load(); // must call after setting/changing source
-            renderer = new GlRenderer(canvas, false, video);
-            renderFrame();
-            video.play();
+            // renderer = new GlRenderer(canvas, false, video);
+            // renderFrame();
+            // video.play();
         }, function (err) {
             alert('Request camera failed');
         });
