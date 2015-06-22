@@ -181,23 +181,32 @@ define(function (require, exports, module) {
 
             // console.time('readPixels');
             // read pixels of edge detection
-            var pixels = new Uint8Array(size.w * size.h * 4);
             var gl = that.renderer.getContext();
-            gl.readPixels(size.ow, size.oh, size.w, size.h,
-                gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            if (that.isImg) {
+                var iw = size.w;
+                var ih = size.h;
+                var pixels = new Uint8Array(iw * ih * 4);
+                gl.readPixels(size.ow, size.oh, size.w, size.h,
+                    gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            } else {
+                var iw = that.videoWidth;
+                var ih = that.videoHeight;
+                var pixels = new Uint8Array(iw * ih * 4);
+                gl.readPixels(0, 0, iw, ih,
+                    gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            }
             // console.timeEnd('readPixels');
             
             console.time('vertex');
-            that.vertices = [[0, 0], [0, size.h], [size.w, 0],
-                [size.w, size.h]];
+            that.vertices = [[0, 0], [0, ih], [iw, 0], [iw, iw]];
             // append to vertex array
             // console.log(size.w, size.h);
             var len = pixels.length / 4;
             var loops = 0;
             for (var i = 0; i < 3000 && loops < 20000; ++i, ++loops) {
                 var id = Math.floor(Math.random() * len);
-                var x = id % size.w;
-                var y = Math.floor(id / size.w);
+                var x = id % iw;
+                var y = Math.floor(id / iw);
                 var red = pixels[id * 4];
                 if (red > 20 || red > Math.random() * 1000) {
                     // is a selected edge vertex
@@ -206,12 +215,12 @@ define(function (require, exports, module) {
                     --i;
                 }
             }
-            for (; i < 3000; ++i) {
-                var id = Math.floor(Math.random() * len);
-                var x = id % size.w;
-                var y = Math.floor(id / size.w);
-                that.vertices.push([x, y]);
-            }
+            // for (; i < 3000; ++i) {
+            //     var id = Math.floor(Math.random() * len);
+            //     var x = id % size.w;
+            //     var y = Math.floor(id / size.w);
+            //     that.vertices.push([x, y]);
+            // }
             console.log('vertex cnt:', that.vertices.length);
             console.timeEnd('vertex');
 
@@ -223,7 +232,7 @@ define(function (require, exports, module) {
 
             // render triangle meshes
             console.time('render');
-            that.renderTriangles();
+            that.renderTriangles(iw, ih);
             console.timeEnd('render');
         }
     };
@@ -231,35 +240,52 @@ define(function (require, exports, module) {
 
 
     // render triangle meshes to screen
-    GlRenderer.prototype.renderTriangles = function() {
+    GlRenderer.prototype.renderTriangles = function(iw, ih) {
         this.faceMesh = [];
         var wireframeGeo = new THREE.Geometry();
         var vertices = this.vertices;
         var triangles = this.triangles;
         var size = this.getRenderSize();
-        var iw = this.isImg ? this.srcImg.width : this.videoWidth;
-        var ih = this.isImg ? this.srcImg.height : this.videoHeight;
+        if (this.isImg) {
+            var iwn = this.srcImg.width;
+            var ihn = this.srcImg.height;
+        } else {
+            var iwn = iw;
+            var ihn = ih;
+        }
         // face mesh
         var geo = new THREE.Geometry();
         var len = triangles.length;
         var fid = 0;
         for(var i = triangles.length - 1; i > 2; i -= 3) {
             // positions of three vertices
-            var a = [vertices[triangles[i]][0] + size.dw,
-                    vertices[triangles[i]][1] + size.dh];
-            var b = [vertices[triangles[i - 1]][0] + size.dw,
-                    vertices[triangles[i - 1]][1] + size.dh];
-            var c = [vertices[triangles[i - 2]][0] + size.dw,
-                    vertices[triangles[i - 2]][1] + size.dh];
+            var a = [vertices[triangles[i]][0] / iw * size.w + size.dw,
+                    vertices[triangles[i]][1] / ih * size.h + size.dh];
+            var b = [vertices[triangles[i - 1]][0] / iw * size.w + size.dw,
+                    vertices[triangles[i - 1]][1] / ih * size.h + size.dh];
+            var c = [vertices[triangles[i - 2]][0] / iw  * size.w + size.dw,
+                    vertices[triangles[i - 2]][1] / ih * size.h + size.dh];
+
+            var a1 = vertices[triangles[i]][0];
+            var a2 = iw;
+            var a3 = size.w;
+            var a4 = a1 / a2 * a3;
+            var a5 = size.dw;
+            var a6 = a4 + a5;
 
             // fill with color in center of gravity
-            var x = Math.floor((vertices[triangles[i]][0] 
-                    + vertices[triangles[i - 1]][0] 
-                    + vertices[triangles[i - 2]][0]) / 3 / size.w * iw);
-            var y = Math.floor((1 - (vertices[triangles[i]][1] 
-                    + vertices[triangles[i - 1]][1] 
-                    + vertices[triangles[i - 2]][1]) / 3 / size.h) * ih);
-            var id = (y * iw + x) * 4;
+            // if (this.isImg) {
+                var x = Math.floor(((a[0] + b[0] + c[0]) / 3 - size.dw) /
+                    size.w * iwn);
+            // } else {
+            //     var x = iwn - Math.floor(((a[0] + b[0] + c[0]) / 3 - size.dw) /
+            //         size.w * iwn);
+            // }
+            var y = ihn - Math.floor(((a[1] + b[1] + c[1]) / 3 - size.dh) /
+                size.h * ihn);
+            x = Math.min(iwn, Math.max(0, x - 1));
+            y = Math.min(ihn, Math.max(0, y - 1));
+            var id = (y * iwn + x) * 4;
             var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
                     + ', ' + this.srcPixel[id + 2] + ')';
 
