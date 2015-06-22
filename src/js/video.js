@@ -57,6 +57,6 @@ require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
 // }, 2000);
         stats.end();
 
-        requestAnimationFrame(renderFrame);
+        // requestAnimationFrame(renderFrame);
     }
 });
