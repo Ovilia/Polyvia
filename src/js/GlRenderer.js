@@ -198,28 +198,26 @@ define(function (require, exports, module) {
             // console.timeEnd('readPixels');
             
             console.time('vertex');
-            that.vertices = [[0, 0], [0, ih], [iw, 0], [iw, iw]];
+            that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
             // append to vertex array
             // console.log(size.w, size.h);
-            var len = pixels.length / 4;
+            var len = iw * ih;
             var loops = 0;
             for (var i = 0; i < 3000 && loops < 20000; ++i, ++loops) {
                 var id = Math.floor(Math.random() * len);
                 var x = id % iw;
                 var y = Math.floor(id / iw);
+                var id = x + y * iw;
                 var red = pixels[id * 4];
                 if (red > 20 || red > Math.random() * 1000) {
                     // is a selected edge vertex
-                    that.vertices.push([x, y]);
+                    that.vertices.push([x / iw, y / ih]);
                 } else {
                     --i;
                 }
             }
             // for (; i < 3000; ++i) {
-            //     var id = Math.floor(Math.random() * len);
-            //     var x = id % size.w;
-            //     var y = Math.floor(id / size.w);
-            //     that.vertices.push([x, y]);
+            //     that.vertices.push([Math.random(), Math.random()]);
             // }
             console.log('vertex cnt:', that.vertices.length);
             console.timeEnd('vertex');
@@ -259,32 +257,27 @@ define(function (require, exports, module) {
         var fid = 0;
         for(var i = triangles.length - 1; i > 2; i -= 3) {
             // positions of three vertices
-            var a = [vertices[triangles[i]][0] / iw * size.w + size.dw,
-                    vertices[triangles[i]][1] / ih * size.h + size.dh];
-            var b = [vertices[triangles[i - 1]][0] / iw * size.w + size.dw,
-                    vertices[triangles[i - 1]][1] / ih * size.h + size.dh];
-            var c = [vertices[triangles[i - 2]][0] / iw  * size.w + size.dw,
-                    vertices[triangles[i - 2]][1] / ih * size.h + size.dh];
-
-            var a1 = vertices[triangles[i]][0];
-            var a2 = iw;
-            var a3 = size.w;
-            var a4 = a1 / a2 * a3;
-            var a5 = size.dw;
-            var a6 = a4 + a5;
+            var a = [vertices[triangles[i]][0] * size.w + size.dw,
+                    vertices[triangles[i]][1] * size.h + size.dh];
+            var b = [vertices[triangles[i - 1]][0] * size.w + size.dw,
+                    vertices[triangles[i - 1]][1] * size.h + size.dh];
+            var c = [vertices[triangles[i - 2]][0] * size.w + size.dw,
+                    vertices[triangles[i - 2]][1] * size.h + size.dh];
 
             // fill with color in center of gravity
             // if (this.isImg) {
-                var x = Math.floor(((a[0] + b[0] + c[0]) / 3 - size.dw) /
-                    size.w * iwn);
+            var x = Math.floor((vertices[triangles[i]][0]
+                    + vertices[triangles[i - 1]][0]
+                    + vertices[triangles[i - 2]][0]) / 3 * iwn);
             // } else {
             //     var x = iwn - Math.floor(((a[0] + b[0] + c[0]) / 3 - size.dw) /
             //         size.w * iwn);
             // }
-            var y = ihn - Math.floor(((a[1] + b[1] + c[1]) / 3 - size.dh) /
-                size.h * ihn);
-            x = Math.min(iwn, Math.max(0, x - 1));
-            y = Math.min(ihn, Math.max(0, y - 1));
+            var y = ihn - Math.floor((vertices[triangles[i]][1]
+                    + vertices[triangles[i - 1]][1]
+                    + vertices[triangles[i - 2]][1]) / 3 * ihn);
+            // x = Math.min(iwn, Math.max(0, x - 1));
+            // y = Math.min(ihn, Math.max(0, y - 1));
             var id = (y * iwn + x) * 4;
             var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
                     + ', ' + this.srcPixel[id + 2] + ')';
@@ -295,13 +288,6 @@ define(function (require, exports, module) {
             geo.vertices.push(new THREE.Vector3(c[0], c[1], 1));
             geo.faces.push(new THREE.Face3(len - i - 1, len - i, len - i + 1));
             geo.faces[fid++].color = new THREE.Color(rgb);
-
-            // wireframe mesh
-            // wireframeGeo.vertices.push(new THREE.Vector3(a[0], a[1], 2));
-            // wireframeGeo.vertices.push(new THREE.Vector3(b[0], b[1], 2));
-            // wireframeGeo.vertices.push(new THREE.Vector3(c[0], c[1], 2));
-            // wireframeGeo.faces.push(new THREE.Face3(triangles.length - i - 1,
-            //         triangles.length - i, triangles.length - i + 1));
         }
         var mesh = new THREE.Mesh(geo, this.faceMaterial);
         this.faceMesh = mesh;
