@@ -44,8 +44,8 @@ var Delaunay;
         xc, yc, m1, m2, mx1, mx2, my1, my2, dx, dy;
 
     /* Check for coincident points */
-    if(fabsy1y2 < EPSILON && fabsy2y3 < EPSILON)
-      throw new Error("Eek! Coincident points!");
+    // if(fabsy1y2 < EPSILON && fabsy2y3 < EPSILON)
+    //   throw new Error("Eek! Coincident points!");
 
     if(fabsy1y2 < EPSILON) {
       m2  = -((x3 - x2) / (y3 - y2));

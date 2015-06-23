@@ -95,6 +95,37 @@ define(function (require, exports, module) {
             this.videoMesh = new THREE.Mesh(videoGeometry, videoMaterial);
             this.videoMesh.position.set(0, 0, -1);
             this.scene.add(this.videoMesh);
+
+            // arrary of selected x and y in last frame,
+            // in video coordinate
+            // {2: [3, 4], 5: [6]} for (x, y) = (2, 3), (2, 4), (5, 6)
+            this.lastSelected = {};
+            this.thisSelected = {};
+        }
+    };
+
+
+
+    // returns bool state of if (x, y) is selected to form triangle
+    GlRenderer.prototype._isLastSelected = function(x, y) {
+        var ys = this.lastSelected[x];
+        if (ys) {
+            for (var i = ys.length - 1; i >= 0; --i) {
+                if (ys[i] != undefined) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    // push to thisSelected array, won't check if has already added
+    GlRenderer.prototype._setThisSelected = function(x, y) {
+        var ys = this.thisSelected[x];
+        if (ys) {
+            ys.push(y);
+        } else {
+            this.thisSelected[x] = [y];
         }
     };
 
@@ -167,6 +198,10 @@ define(function (require, exports, module) {
                 this.videoTexture.needsUpdate = true;
             }
             process();
+
+            // set thisSelected to lastSelected
+            this.lastSelected = this.thisSelected;
+            this.thisSelected = {};
         }
 
         function process() {
@@ -195,24 +230,49 @@ define(function (require, exports, module) {
             // console.time('vertex');
             that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
             // append to vertex array
-            // console.log(size.w, size.h);
             var len = iw * ih;
             var loops = 0;
-            for (var i = 4; i < 2000 && loops < 20000; ++i, ++loops) {
+            var i = 4;
+            // select those edges that in lastSelected
+            // for (var xi in that.lastSelected) {
+            //     var x = parseInt(xi, 10);
+            //     if (that.lastSelected[xi] != undefined) {
+            //         for (var yi = that.lastSelected[xi].length; yi >= 0; --yi) {
+            //             var y = that.lastSelected[xi][yi];
+            //             var id = y * iw + x;
+            //             var red = pixels[id * 4];
+            //             if (red > 5 && Math.random() > 1) {
+            //                 that._setThisSelected(xi, y);
+            //                 that.vertices.push([x / iw, y / ih]);
+            //                 ++i;
+            //             }
+            //         }
+            //     }
+            // }
+            // console.log('sc', sc);
+
+            for (; i < 4000 && loops < 200000; ++i, ++loops) {
                 var id = Math.floor(Math.random() * len);
                 var x = id % iw;
-                var y = id / iw;
+                var y = Math.floor(id / iw);
                 var red = pixels[id * 4];
-                if (red > 20 || red > Math.random() * 1000) {
+                if (red > 50 || red > Math.random() * 1000) {
                     // is a selected edge vertex
+                    that._setThisSelected(x, y);
                     that.vertices.push([x / iw, y / ih]);
                 } else {
                     --i;
                 }
             }
-            for (; i < 2500; ++i) {
-                that.vertices.push([Math.random(), Math.random()]);
-            }
+            // console.log(sc);
+            // for (; i < 3000; ++i) {
+            //     // randomly selected vertices will not push to thisSelected
+            //     var rx = Math.random();
+            //     var ry = Math.random();
+            //     that.vertices.push([rx, ry]);
+            //     // that._setThisSelected(Math.floor(rx * iw), 
+            //     //     Math.floor(ry * ih));
+            // }
             // console.log('vertex cnt:', that.vertices.length);
             // console.timeEnd('vertex');
 
@@ -259,19 +319,14 @@ define(function (require, exports, module) {
                     vertices[triangles[i - 2]][1] * size.h + size.dh];
 
             // fill with color in center of gravity
-            // if (this.isImg) {
             var x = Math.floor((vertices[triangles[i]][0]
                     + vertices[triangles[i - 1]][0]
                     + vertices[triangles[i - 2]][0]) / 3 * iwn);
-            // } else {
-            //     var x = iwn - Math.floor(((a[0] + b[0] + c[0]) / 3 - size.dw) /
-            //         size.w * iwn);
-            // }
             var y = ihn - Math.floor((vertices[triangles[i]][1]
                     + vertices[triangles[i - 1]][1]
                     + vertices[triangles[i - 2]][1]) / 3 * ihn);
-            // x = Math.min(iwn, Math.max(0, x - 1));
-            // y = Math.min(ihn, Math.max(0, y - 1));
+            x = Math.min(iwn, Math.max(0, x - 1));
+            y = Math.min(ihn, Math.max(0, y - 1));
             var id = (y * iwn + x) * 4;
             var rgb = 'rgb(' + this.srcPixel[id] + ', ' + this.srcPixel[id + 1]
                     + ', ' + this.srcPixel[id + 2] + ')';
@@ -282,13 +337,6 @@ define(function (require, exports, module) {
             geo.vertices.push(new THREE.Vector3(c[0], c[1], 1));
             geo.faces.push(new THREE.Face3(len - i - 1, len - i, len - i + 1));
             geo.faces[fid++].color = new THREE.Color(rgb);
-
-            // if (vertices[triangles[i]][1] < 0.05 && vertices[triangles[i - 1]][1] < 0.05
-            //     && vertices[triangles[i - 2]][1] < 0.05) {
-            //     console.log(vertices[triangles[i]][0], vertices[triangles[i]][1],
-            //         vertices[triangles[i - 1]][0], vertices[triangles[i - 1]][1],
-            //         vertices[triangles[i - 2]][0], vertices[triangles[i - 2]][1]);
-            // }
         }
         var mesh = THREE.SceneUtils.createMultiMaterialObject(geo, [
             //this.wireframeMaterial,
