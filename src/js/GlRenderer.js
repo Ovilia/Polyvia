@@ -59,7 +59,7 @@ define(function (require, exports, module) {
 
         this.composer = new THREE.EffectComposer(this.renderer);
         this.composer.addPass(renderPass);
-        // this.composer.addPass(edgeShader);
+        this.composer.addPass(edgeShader);
         this.composer.addPass(effectCopy);
 
 
@@ -187,7 +187,7 @@ define(function (require, exports, module) {
                 var iw = that.videoWidth;
                 var ih = that.videoHeight;
                 var pixels = new Uint8Array(iw * ih * 4);
-                gl.readPixels(0, 0, iw, ih,
+                gl.readPixels(0, that.canvas.height - ih, iw, ih,
                     gl.RGBA, gl.UNSIGNED_BYTE, pixels);
             }
             // console.timeEnd('readPixels');
@@ -198,46 +198,34 @@ define(function (require, exports, module) {
             // console.log(size.w, size.h);
             var len = iw * ih;
             var loops = 0;
-            // for (var i = 4; i < 3000 && loops < 20000; ++i, ++loops) {
-            //     var id = Math.floor(Math.random() * len);
-            //     var x = id % iw;
-            //     var y = id / iw;
-            //     var red = pixels[id * 4];
-            //     if (red > 20 || red > Math.random() * 1000) {
-            //         // is a selected edge vertex
-            //         that.vertices.push([x / iw, y / ih]);
-            //     } else {
-            //         --i;
-            //     }
-            // }
-            var i = 0;var cnt = 0;
-            for (var y = 0; y < ih; ++y) {
-                var xx = 0;
-                for (var x = 0; x < iw; ++x) {
-                    if (pixels[i] > 0) {
-                        // that.vertices.push([x / iw, y / ih]);
-                        cnt++;
-                    }
-                    i += 4;
+            for (var i = 4; i < 2000 && loops < 20000; ++i, ++loops) {
+                var id = Math.floor(Math.random() * len);
+                var x = id % iw;
+                var y = id / iw;
+                var red = pixels[id * 4];
+                if (red > 20 || red > Math.random() * 1000) {
+                    // is a selected edge vertex
+                    that.vertices.push([x / iw, y / ih]);
+                } else {
+                    --i;
                 }
             }
-            console.log(cnt / iw / ih);
-            // for (; i < 3000; ++i) {
-            //     that.vertices.push([Math.random(), Math.random()]);
-            // }
+            for (; i < 2500; ++i) {
+                that.vertices.push([Math.random(), Math.random()]);
+            }
             // console.log('vertex cnt:', that.vertices.length);
             // console.timeEnd('vertex');
 
             // calculate delaunay triangles
-            // console.time('triangle');
-            // that.triangles = Delaunay.triangulate(that.vertices);
-            // console.log('triangle cnt:', that.triangles.length);
-            // console.timeEnd('triangle');
+            console.time('triangle');
+            that.triangles = Delaunay.triangulate(that.vertices);
+            console.log('triangle cnt:', that.triangles.length);
+            console.timeEnd('triangle');
 
-            // // render triangle meshes
-            // console.time('render');
-            // that.renderTriangles(iw, ih);
-            // console.timeEnd('render');
+            // render triangle meshes
+            console.time('render');
+            that.renderTriangles(iw, ih);
+            console.timeEnd('render');
         }
     };
 
@@ -303,8 +291,8 @@ define(function (require, exports, module) {
             // }
         }
         var mesh = THREE.SceneUtils.createMultiMaterialObject(geo, [
-            this.wireframeMaterial,
-            //this.faceMaterial, 
+            //this.wireframeMaterial,
+            this.faceMaterial, 
             
         ]);
         this.faceMesh = mesh;
