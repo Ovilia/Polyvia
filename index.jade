@@ -11,52 +11,22 @@ html(lang="en")
     img(id='source-img', src='src/img/mao.png')
     input(id='img-path', type='file')
 
+    script(type='text/javascript', src='vendor/three.js')
+    script(type='text/javascript', src='vendor/three.CopyShader.js')
+    script(type='text/javascript', src='vendor/three.EdgeShader.js')
+    script(type='text/javascript', src='vendor/three.EffectComposer.js')
+    script(type='text/javascript', src='vendor/three.MaskPass.js')
+    script(type='text/javascript', src='vendor/three.RenderPass.js')
+    script(type='text/javascript', src='vendor/three.ShaderPass.js')
     script(type='text/javascript', src='vendor/require.js')
     script(type='text/javascript').
         require.config({
             baseUrl: './src/js',
             paths: {
                 'dat': '../../vendor/dat.gui',
-                'delaunay': '../../vendor/delaunay',
-                'three': '../../vendor/three',
-                'threeCopy': '../../vendor/three.CopyShader',
-                'threeEdge': '../../vendor/three.EdgeShader',
-                'threeComposer': '../../vendor/three.EffectComposer',
-                'threeMask': '../../vendor/three.MaskPass',
-                'threeRender': '../../vendor/three.RenderPass',
-                'threeShader': '../../vendor/three.ShaderPass'
+                'delaunay': '../../vendor/delaunay'
             },
             shim: {
-                'three': {
-                    exports: 'THREE'
-                },
-                'GlRenderer': {
-                    deps: ['three']
-                },
-                'threeCopy': {
-                    deps: ['three'],
-                    exports: 'THREE.CopyShader'
-                },
-                'threeEdge': {
-                    deps: ['three'],
-                    exports: 'THREE.EdgeShader'
-                },
-                'threeComposer': {
-                    deps: ['three'],
-                    exports: 'THREE.EffectComposer'
-                },
-                'threeMask': {
-                    deps: ['three'],
-                    exports: 'THREE.MaskPass'
-                },
-                'threeRender': {
-                    deps: ['three'],
-                    exports: 'THREE.RenderPass'
-                },
-                'threeShader': {
-                    deps: ['three'],
-                    exports: 'THREE.ShaderPass'
-                },
                 'dat': {
                     exports: 'dat'
                 },

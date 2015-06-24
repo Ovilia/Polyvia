@@ -7,7 +7,7 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    var renderer = new GlRenderer(canvas, true, img);
+    var renderer = new GlRenderer(canvas, 2000, true, img);
 
 
 

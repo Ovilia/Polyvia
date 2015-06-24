@@ -5,8 +5,9 @@ define(function (require, exports, module) {
 
     var Delaunay = require('delaunay');
 
-    function GlRenderer(canvas, isImg, imgPath, videoElement) {
+    function GlRenderer(canvas, maxVertexCnt, isImg, imgPath, videoElement) {
         this.canvas = canvas;
+        this.maxVertexCnt = maxVertexCnt;
         this.isImg = isImg;
         if (!isImg) {
             this.video = imgPath;
@@ -242,27 +243,34 @@ define(function (require, exports, module) {
                 }
             }
             // console.log(i);
-            for (; i < 3600 && loops < 200000; ++i, ++loops) {
+            var edgeCnt = Math.floor(that.maxVertexCnt * 0.95);
+            var maxLoop = that.maxVertexCnt * 100;
+            for (; i < edgeCnt && loops < maxLoop; ++i, ++loops) {
                 var id = Math.floor(Math.random() * len);
                 var x = id % iw;
                 var y = Math.floor(id / iw);
                 var red = pixels[id * 4];
-                if (red > 150 || red > Math.random() * 150) {
+                if (red > 100 || red > Math.random() * 100) {
                     // is a selected edge vertex
-                    that._setThisSelected(x, y);
+                    if (!that.isImg) {
+                        that._setThisSelected(x, y);
+                    }
+                    
                     that.vertices.push([x / iw, y / ih]);
                 } else {
                     --i;
                 }
             }
             
-            for (; i < 4000; ++i) {
+            for (; i < that.maxVertexCnt; ++i) {
                 // randomly selected vertices will not push to thisSelected
                 var rx = Math.random();
                 var ry = Math.random();
                 that.vertices.push([rx, ry]);
-                that._setThisSelected(Math.floor(rx * iw), 
-                    Math.floor(ry * ih));
+                if (!that.isImg) {
+                    that._setThisSelected(Math.floor(rx * iw), 
+                            Math.floor(ry * ih));
+                }
             }
             // console.log('vertex cnt:', that.vertices.length);
             // console.timeEnd('vertex');
