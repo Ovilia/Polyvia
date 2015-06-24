@@ -9,7 +9,7 @@ var jade        = require('gulp-jade');
  * Launch the Server
  */
 gulp.task('browser-sync', ['sass'], function() {
-    gulp.run('vendor');
+    //gulp.run('vendor');
     gulp.run('jade');
     browserSync({
         server: {

@@ -3,14 +3,6 @@
 
 define(function (require, exports, module) {
 
-    var THREE            = require('three');
-    THREE.CopyShader     = require('threeCopy');
-    THREE.EdgeShader     = require('threeEdge');
-    THREE.EffectComposer = require('threeComposer');
-    THREE.MaskPass       = require('threeMask');
-    THREE.RenderPass     = require('threeRender');
-    THREE.ShaderPass     = require('threeShader');
-
     var Delaunay = require('delaunay');
 
     function GlRenderer(canvas, isImg, imgPath, videoElement) {
@@ -111,7 +103,7 @@ define(function (require, exports, module) {
         var ys = this.lastSelected[x];
         if (ys) {
             for (var i = ys.length - 1; i >= 0; --i) {
-                if (ys[i] != undefined) {
+                if (ys[i] == y) {
                     return true;
                 }
             }
@@ -234,29 +226,28 @@ define(function (require, exports, module) {
             var loops = 0;
             var i = 4;
             // select those edges that in lastSelected
-            // for (var xi in that.lastSelected) {
-            //     var x = parseInt(xi, 10);
-            //     if (that.lastSelected[xi] != undefined) {
-            //         for (var yi = that.lastSelected[xi].length; yi >= 0; --yi) {
-            //             var y = that.lastSelected[xi][yi];
-            //             var id = y * iw + x;
-            //             var red = pixels[id * 4];
-            //             if (red > 5 && Math.random() > 1) {
-            //                 that._setThisSelected(xi, y);
-            //                 that.vertices.push([x / iw, y / ih]);
-            //                 ++i;
-            //             }
-            //         }
-            //     }
-            // }
-            // console.log('sc', sc);
-
-            for (; i < 4000 && loops < 200000; ++i, ++loops) {
+            for (var xi in that.lastSelected) {
+                var x = parseInt(xi, 10);
+                if (that.lastSelected[xi] != undefined) {
+                    for (var yi = that.lastSelected[xi].length; yi >= 0; --yi) {
+                        var y = that.lastSelected[xi][yi];
+                        var id = y * iw + x;
+                        var red = pixels[id * 4];
+                        if (red > 40 && Math.random() > 0.2) {
+                            that._setThisSelected(xi, y);
+                            that.vertices.push([x / iw, y / ih]);
+                            ++i;
+                        }
+                    }
+                }
+            }
+            // console.log(i);
+            for (; i < 3600 && loops < 200000; ++i, ++loops) {
                 var id = Math.floor(Math.random() * len);
                 var x = id % iw;
                 var y = Math.floor(id / iw);
                 var red = pixels[id * 4];
-                if (red > 50 || red > Math.random() * 1000) {
+                if (red > 150 || red > Math.random() * 150) {
                     // is a selected edge vertex
                     that._setThisSelected(x, y);
                     that.vertices.push([x / iw, y / ih]);
@@ -264,28 +255,28 @@ define(function (require, exports, module) {
                     --i;
                 }
             }
-            // console.log(sc);
-            // for (; i < 3000; ++i) {
-            //     // randomly selected vertices will not push to thisSelected
-            //     var rx = Math.random();
-            //     var ry = Math.random();
-            //     that.vertices.push([rx, ry]);
-            //     // that._setThisSelected(Math.floor(rx * iw), 
-            //     //     Math.floor(ry * ih));
-            // }
+            
+            for (; i < 4000; ++i) {
+                // randomly selected vertices will not push to thisSelected
+                var rx = Math.random();
+                var ry = Math.random();
+                that.vertices.push([rx, ry]);
+                that._setThisSelected(Math.floor(rx * iw), 
+                    Math.floor(ry * ih));
+            }
             // console.log('vertex cnt:', that.vertices.length);
             // console.timeEnd('vertex');
 
             // calculate delaunay triangles
-            console.time('triangle');
+            // console.time('triangle');
             that.triangles = Delaunay.triangulate(that.vertices);
-            console.log('triangle cnt:', that.triangles.length);
-            console.timeEnd('triangle');
+            // console.log('triangle cnt:', that.triangles.length);
+            // console.timeEnd('triangle');
 
             // render triangle meshes
-            console.time('render');
+            // console.time('render');
             that.renderTriangles(iw, ih);
-            console.timeEnd('render');
+            // console.timeEnd('render');
         }
     };
 
