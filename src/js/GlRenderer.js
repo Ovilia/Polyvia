@@ -17,7 +17,7 @@ function GlRenderer(canvas, maxVertexCnt, isImg, imgPath, videoElement) {
 
     this.hasWireframe = false;
 
-    window.renderer = this;
+    // window.renderer = this;
 };
 
 
@@ -161,6 +161,10 @@ GlRenderer.prototype.updateImage = function(imgPath, callback) {
     this.imgPath = imgPath;
     this._renderSize = null;
     this.clear();
+    if (this.imgMesh) {
+        this.scene.remove(this.imgMesh);
+        this.imgMesh = null;
+    }
 
     // render the srcImg to get pixel color later
     this.preRender(callback);
