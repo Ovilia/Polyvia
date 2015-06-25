@@ -2,10 +2,37 @@ doctype html
 html(lang="en")
   head
     title Polyvia
-    link(href='src/css/app.css', type='text/css', rel='stylesheet')
+    style(type='text/css', rel='stylesheet').
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        body {
+            width: 100%;
+            height: 100%;
+        }
+        #canvas {
+            height: 100%;
+        }
+        #info {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 20px;
+            z-index: 10;
+        }
 
   body
-    canvas(id='canvas')
+    canvas(id='canvas', width='0', height='0')
+
+    div(id='info')
+        h1 Polyvia
+        p is
 
     script(type='text/javascript', src='vendor/three.js')
     script(type='text/javascript', src='vendor/three.CopyShader.js')

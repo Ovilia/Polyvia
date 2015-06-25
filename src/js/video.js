@@ -7,7 +7,6 @@ require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-
     var renderer = null;
 
     // align top-left
@@ -29,18 +28,20 @@ require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
             video.onloadedmetadata = function(e) {
                 video.play();
 
-                // edgeCanvas.width = this.videoWidth;
-                // edgeCanvas.height = this.videoHeight;
+                // update canvas position
+                if (canvas.width > this.videoWidth) {
+                    canvas.width = this.videoWidth;
+                    canvas.height = this.videoHeight;
+
+                    // var info = document.getElementById('info');
+                    // info.style.width = Math.floor((window.innerWidth 
+                    //         - this.videoWidth) / 2) + 'px';
+                }
 
                 renderer = new GlRenderer(canvas, 4000, false, video, this);
                 renderFrame();
             };
-            video.width = canvas.width / 2;
-            video.height = canvas.height / 2;
-            video.load(); // must call after setting/changing source
-            // renderer = new GlRenderer(canvas, false, video);
-            // renderFrame();
-            // video.play();
+            video.load();
         }, function (err) {
             alert('Request camera failed');
         });

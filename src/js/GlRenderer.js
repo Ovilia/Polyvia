@@ -60,6 +60,20 @@ define(function (require, exports, module) {
         this.composer.addPass(edgeShader);
         this.composer.addPass(effectCopy);
 
+        // material for vertex wireframe
+        this.wireframeMaterial = new THREE.MeshBasicMaterial({
+            wireframe: true,
+            color: 0xffff00
+        });
+        this.wireframeMesh = null;
+
+        // material for face color
+        this.faceMaterial = new THREE.MeshBasicMaterial({
+            vertexColors: THREE.FaceColors,
+            color: 0xffffff
+        });
+        this.faceMesh = null;
+
 
 
         if (!this.isImg) {
@@ -152,36 +166,17 @@ define(function (require, exports, module) {
     // change to a new image
     GlRenderer.prototype.updateImage = function(imgPath, callback) {
         this.imgPath = imgPath;
-
-        // material for vertex wireframe
-        this.wireframeMaterial = new THREE.MeshBasicMaterial({
-            wireframe: true,
-            color: 0xffff00
-        });
-
-        // material for face color
-        this.faceMaterial = new THREE.MeshBasicMaterial({
-            vertexColors: THREE.FaceColors,
-            color: 0xffffff
-        });
-        this.faceMesh = null;
+        this._renderSize = null;
+        this.clear();
 
         // render the srcImg to get pixel color later
-        // console.time('preRender');
         this.preRender(callback);
-        // console.timeEnd('preRender');
     };
 
 
 
-    // render again without changing triangle positions
-    GlRenderer.prototype.render = function(callback) {
-        this.renderer.clear();
-
-        if (!this.isImg) {
-            this.preRender();
-        }
-
+    // remove objects from the scene
+    GlRenderer.prototype.clear = function() {
         // remove meshes from scene
         if (this.faceMesh) {
             this.finalScene.remove(this.faceMesh);
@@ -191,6 +186,17 @@ define(function (require, exports, module) {
             this.finalScene.remove(this.wireframeMesh);
             this.wireframeMesh = null;
         }
+    };
+
+
+    // render again without changing triangle positions
+    GlRenderer.prototype.render = function(callback) {
+        this.clear();
+
+        if (!this.isImg) {
+            this.preRender();
+        }
+
 
         var size = this.getRenderSize();
 
@@ -225,11 +231,7 @@ define(function (require, exports, module) {
         }
 
         function process() {
-            // console.time('composer');
             that.composer.render();
-            // console.timeEnd('composer');
-
-            // console.time('readPixels');
             // read pixels of edge detection
             var gl = that.renderer.getContext();
             if (that.isImg) {
@@ -245,9 +247,7 @@ define(function (require, exports, module) {
                 gl.readPixels(0, that.canvas.height - ih, iw, ih,
                     gl.RGBA, gl.UNSIGNED_BYTE, pixels);
             }
-            // console.timeEnd('readPixels');
-            
-            // console.time('vertex');
+
             that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
             // append to vertex array
             var len = iw * ih;
@@ -269,7 +269,6 @@ define(function (require, exports, module) {
                     }
                 }
             }
-            // console.log(i);
             var edgeCnt = Math.floor(that.maxVertexCnt * 0.95);
             var maxLoop = that.maxVertexCnt * 100;
             for (; i < edgeCnt && loops < maxLoop; ++i, ++loops) {
@@ -299,19 +298,12 @@ define(function (require, exports, module) {
                             Math.floor(ry * ih));
                 }
             }
-            // console.log('vertex cnt:', that.vertices.length);
-            // console.timeEnd('vertex');
 
             // calculate delaunay triangles
-            // console.time('triangle');
             that.triangles = Delaunay.triangulate(that.vertices);
-            // console.log('triangle cnt:', that.triangles.length);
-            // console.timeEnd('triangle');
 
             // render triangle meshes
-            // console.time('render');
             that.renderTriangles(iw, ih);
-            // console.timeEnd('render');
         }
     };
 
@@ -374,9 +366,7 @@ define(function (require, exports, module) {
         }
         this.finalScene.add(this.wireframeMesh);
 
-        // console.time('finalRender');
         this.renderer.render(this.finalScene, this.camera);
-        // console.timeEnd('finalRender');
     }
 
 
@@ -385,15 +375,13 @@ define(function (require, exports, module) {
         // TODO: this function still not works yet
         var h = this.canvas.height;
         var w = this.canvas.width;
-        // this.wireframeMesh.position.y += h / 2 - this.camera.top;
-        // this.wireframeMesh.position.x += w / 2 - this.camera.left;
 
-        this.camera.left = -w / 2;
-        this.camera.right = w / 2;
-        this.camera.top = -h / 2;
-        this.camera.right = h / 2;
-        this.render();
-        // console.log(this.camera.top);
+        this.camera.aspect = w / h;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(w, h);
+        this.composer.setSize(w, h);
+
+        this._renderSize = null; // flag to recalculate
     }
 
 

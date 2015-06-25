@@ -12,13 +12,12 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
         renderTime(start);
     });
 
-
-
     // event handling
     window.onresize = function() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         renderer.resize();
+        rerender();
     }
 
 

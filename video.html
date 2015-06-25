@@ -1,4 +1,27 @@
-<!DOCTYPE html><html lang="en"><head><title>Polyvia</title><link href="src/css/app.css" type="text/css" rel="stylesheet"></head><body><canvas id="canvas"></canvas><script type="text/javascript" src="vendor/three.js"></script><script type="text/javascript" src="vendor/three.CopyShader.js"></script><script type="text/javascript" src="vendor/three.EdgeShader.js"></script><script type="text/javascript" src="vendor/three.EffectComposer.js"></script><script type="text/javascript" src="vendor/three.MaskPass.js"></script><script type="text/javascript" src="vendor/three.RenderPass.js"></script><script type="text/javascript" src="vendor/three.ShaderPass.js"></script><script type="text/javascript" src="vendor/require.js"></script><script type="text/javascript">require.config({
+<!DOCTYPE html><html lang="en"><head><title>Polyvia</title><style type="text/css" rel="stylesheet">* {
+    margin: 0;
+    padding: 0;
+}
+html {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+body {
+    width: 100%;
+    height: 100%;
+}
+#canvas {
+    height: 100%;
+}
+#info {
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 20px;
+    z-index: 10;
+}
+</style></head><body><canvas id="canvas" width="0" height="0"></canvas><div id="info"><h1>Polyvia</h1><p>is</p></div><script type="text/javascript" src="vendor/three.js"></script><script type="text/javascript" src="vendor/three.CopyShader.js"></script><script type="text/javascript" src="vendor/three.EdgeShader.js"></script><script type="text/javascript" src="vendor/three.EffectComposer.js"></script><script type="text/javascript" src="vendor/three.MaskPass.js"></script><script type="text/javascript" src="vendor/three.RenderPass.js"></script><script type="text/javascript" src="vendor/three.ShaderPass.js"></script><script type="text/javascript" src="vendor/require.js"></script><script type="text/javascript">require.config({
     baseUrl: './src/js',
     paths: {
         'dat': '../../vendor/dat.gui',
