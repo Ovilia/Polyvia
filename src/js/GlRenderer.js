@@ -14,10 +14,15 @@ define(function (require, exports, module) {
             this.videoWidth = videoElement.videoWidth;
             this.videoHeight = videoElement.videoHeight;
             this.videoElement = videoElement;
+        } else {
+            var callback = videoElement;
         }
 
         this.init();
-        this.updateImage(imgPath);
+
+        this.updateImage(imgPath, callback);
+
+        this.hasWireframe = false;
 
         window.renderer = this;
     };
@@ -99,6 +104,13 @@ define(function (require, exports, module) {
 
 
 
+    // set maximum vertex cnt
+    GlRenderer.prototype.setVertexCnt = function(cnt) {
+        this.maxVertexCnt = cnt;
+    };
+
+
+
     // returns bool state of if (x, y) is selected to form triangle
     GlRenderer.prototype._isLastSelected = function(x, y) {
         var ys = this.lastSelected[x];
@@ -126,14 +138,19 @@ define(function (require, exports, module) {
 
     // display and hide wireframe
     GlRenderer.prototype.setWireframe = function(hasWireframe) {
-        this.wireframeMesh.visible = hasWireframe;
-        this.renderer.render(this.scene, this.camera);
+        if (this.wireframeMesh) {
+            this.wireframeMesh.visible = hasWireframe;
+            if (this.hasWireframe != hasWireframe) {
+                this.renderer.render(this.finalScene, this.camera);
+                this.hasWireframe = hasWireframe;
+            }
+        }
     };
 
 
 
     // change to a new image
-    GlRenderer.prototype.updateImage = function(imgPath) {
+    GlRenderer.prototype.updateImage = function(imgPath, callback) {
         this.imgPath = imgPath;
 
         // material for vertex wireframe
@@ -151,14 +168,16 @@ define(function (require, exports, module) {
 
         // render the srcImg to get pixel color later
         // console.time('preRender');
-        this.preRender();
+        this.preRender(callback);
         // console.timeEnd('preRender');
     };
 
 
 
     // render again without changing triangle positions
-    GlRenderer.prototype.render = function() {
+    GlRenderer.prototype.render = function(callback) {
+        this.renderer.clear();
+
         if (!this.isImg) {
             this.preRender();
         }
@@ -167,6 +186,10 @@ define(function (require, exports, module) {
         if (this.faceMesh) {
             this.finalScene.remove(this.faceMesh);
             this.faceMesh = null;
+        }
+        if (this.wireframeMesh) {
+            this.finalScene.remove(this.wireframeMesh);
+            this.wireframeMesh = null;
         }
 
         var size = this.getRenderSize();
@@ -195,6 +218,10 @@ define(function (require, exports, module) {
             // set thisSelected to lastSelected
             this.lastSelected = this.thisSelected;
             this.thisSelected = {};
+        }
+
+        if (callback) {
+            callback();
         }
 
         function process() {
@@ -337,13 +364,15 @@ define(function (require, exports, module) {
             geo.faces.push(new THREE.Face3(len - i - 1, len - i, len - i + 1));
             geo.faces[fid++].color = new THREE.Color(rgb);
         }
-        var mesh = THREE.SceneUtils.createMultiMaterialObject(geo, [
-            //this.wireframeMaterial,
-            this.faceMaterial, 
-            
-        ]);
-        this.faceMesh = mesh;
-        this.finalScene.add(mesh);
+        this.faceMesh = new THREE.Mesh(geo, this.faceMaterial);
+        this.finalScene.add(this.faceMesh);
+
+        this.wireframeMesh = new THREE.Mesh(geo, this.wireframeMaterial);
+        this.wireframeMesh.position.z = 2;
+        if (!this.hasWireframe) {
+            this.wireframeMesh.visible = false;
+        }
+        this.finalScene.add(this.wireframeMesh);
 
         // console.time('finalRender');
         this.renderer.render(this.finalScene, this.camera);
@@ -370,7 +399,7 @@ define(function (require, exports, module) {
 
 
     // render origin image to get pixel color
-    GlRenderer.prototype.preRender = function() {
+    GlRenderer.prototype.preRender = function(callback) {
         if (this.isImg) {
             // original image
             this.srcImg = new Image();
@@ -389,6 +418,10 @@ define(function (require, exports, module) {
                 that.srcPixel = srcCtx.getImageData(0, 0, img.width, img.height).data;
 
                 that.render();
+
+                if (callback) {
+                    callback();
+                }
             };
         } else {
             // original video

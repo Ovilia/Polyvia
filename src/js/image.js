@@ -7,7 +7,10 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    var renderer = new GlRenderer(canvas, 2000, true, img);
+    var start = new Date();
+    var renderer = new GlRenderer(canvas, 2000, true, img, function() {
+        renderTime(start);
+    });
 
 
 
@@ -21,15 +24,25 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
 
 
     // dat.gui
-    var hasWireframe = true;
+    var hasWireframe = false;
     var GuiConfig = function() {
-        this['Image Path'] = '';
+        this['Image URL'] = '';
 
         this['Upload Image'] = function() {
             var input = document.getElementById('img-path');
             input.addEventListener('change', function() {
                 var file = input.files[0];
-                config['Image Path'] = file.name;
+                config['Image URL'] = file.name;
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var start = new Date();
+                    renderer.updateImage(e.target.result, function() {
+                        renderTime(start);
+                    });
+                };
+                reader.readAsDataURL(file);
+
                 // Iterate over all controllers
                 for (var i in gui.__controllers) {
                     gui.__controllers[i].updateDisplay();
@@ -38,30 +51,64 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
             input.click();
         };
 
-        this['Vertex Cnt'] = 1000;
-
-        this['Edge Weight'] = 0.8;
+        this['Vertex Cnt'] = 2000;
 
         this['Wireframe'] = function() {
             hasWireframe = !hasWireframe;
             renderer.setWireframe(hasWireframe);
         };
 
-        this['Apply'] = function() {
-            // polyvia.set({
-            //     vertexCnt: this['Vertex Cnt'],
-            //     edgeWeight: this['Edge Weight'],
-            //     // renderVertices: this['Render Vertices']
-            // });
-            renderer.render();
+        this['Render'] = function() {
+            renderer.setVertexCnt(this['Vertex Cnt']);
+            rerender();
         };
     };
     var config = new GuiConfig();
     var gui = new dat.GUI();
-    gui.add(config, 'Image Path', config['Image Path']);
+
+    var vertexCntGui = gui.add(config, 'Vertex Cnt', 100, 5000).step(100);
+    vertexCntGui.onChange(function(value) {
+        renderer.setVertexCnt(value);
+        rerender();
+    });
+
+    gui.add(config, 'Image URL', config['Image URL']);
     gui.add(config, 'Upload Image');
-    gui.add(config, 'Vertex Cnt', 100, 5000).step(100);
-    gui.add(config, 'Edge Weight', 0, 1).step(0.05);
+    gui.add(config, 'Render');
     gui.add(config, 'Wireframe');
-    gui.add(config, 'Apply');
+
+
+
+    function showMsg(txt) {
+        // delete previous msg
+        var msgs = document.getElementsByClassName('msg');
+        for (var i = msgs.length - 1; i >= 0; --i) {
+            document.body.removeChild(msgs[i]);
+        }
+
+        var msg = document.createElement('div');
+        msg.className = 'msg';
+        msg.innerHTML = txt;
+        document.body.appendChild(msg);
+
+        // message displays after 5 seconds
+        setTimeout(function() {
+            if (msg.parentNode === document.body) {
+                document.body.removeChild(msg);
+            }
+        }, 5000);
+    }
+
+    function rerender() {
+        var start = new Date();
+        renderer.render(function() {
+            renderTime(start);
+        });
+    }
+
+    function renderTime(start) {
+        var end = new Date();
+        var time = parseFloat((end - start) / 1000, 3);
+        showMsg('Render time: ' + time + ' seconds');
+    }
 });
