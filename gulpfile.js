@@ -4,6 +4,8 @@ var sass        = require('gulp-sass');
 var prefix      = require('gulp-autoprefixer');
 var cp          = require('child_process');
 var jade        = require('gulp-jade');
+var uglify      = require('gulp-uglify');
+var concat      = require('gulp-concat');
 
 /**
  * Launch the Server
@@ -28,6 +30,19 @@ gulp.task('vendor', function() {
             'bower_components/seajs/dist/sea-debug.js',
             'bower_components/dat-gui/build/dat.gui.js'])
         .pipe(gulp.dest('vendor'));
+});
+
+/**
+ * Build src js files
+ */
+gulp.task('compress', function() {
+    gulp.src(['src/js/GlRenderer.js', 'vendor/*.js'])
+        .pipe(uglify())
+        .pipe(concat('lib.js'))
+        .pipe(gulp.dest('build'));
+    gulp.src(['src/js/video.js', 'src/js/image.js'])
+        .pipe(uglify())
+        .pipe(gulp.dest('build'));
 });
 
 /**

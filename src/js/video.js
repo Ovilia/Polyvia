@@ -1,4 +1,4 @@
-require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
+(function () {
     var stats = new Stats();
     stats.setMode(0);
 
@@ -58,4 +58,4 @@ require(['GlRenderer', 'stats'], function(GlRenderer, Stats) {
 
         requestAnimationFrame(renderFrame);
     }
-});
+})();

@@ -15,16 +15,17 @@ html {
     width: 100%;
     height: 100%;
     overflow: hidden;
+}
+#source-img, #img-path {
+    display: none;
+}
+.msg {
     background-color: #22C3AA;
-    color: white;
-    font-family: serif;
-}
-body {
-    width: 100%;
-    height: 100%;
-}
-#canvas {
-    height: 100%;
+    color: #333;
+    padding: 3px 8px;
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
 }
 #info {
     position: absolute;
@@ -47,4 +48,4 @@ p {
 a {
     color: #157a6b;
 }
-</style></head><body><canvas id="canvas" width="0" height="0"></canvas><div id="info"><h1>Polyvia</h1><h3>Low-Poly Style Image & Video Processing</h3><p><a href="./image.html" target="_blank">Image Version</a></p><p><a href="http://zhangwenli.com" target="_blank">About Author</a></p><p><a href="http://github.com/Ovilia/Polyvia" target="_blank">View on GitHub</a></p></div><script type="text/javascript" src="build/lib.js"></script><script type="text/javascript" src="build/video.js"></script></body></html>
+</style></head><body><canvas id="canvas"></canvas><input id="img-path" type="file"><script type="text/javascript" src="build/lib.js"></script><script type="text/javascript" src="build/image.js"></script></body></html>

@@ -1,5 +1,4 @@
-require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
-
+(function () {
     var img = './src/img/3.jpg';
     var canvas = document.getElementById('canvas');
 
@@ -25,13 +24,11 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
     // dat.gui
     var hasWireframe = false;
     var GuiConfig = function() {
-        this['Image URL'] = '';
 
         this['Upload Image'] = function() {
             var input = document.getElementById('img-path');
             input.addEventListener('change', function() {
                 var file = input.files[0];
-                config['Image URL'] = file.name;
 
                 var reader = new FileReader();
                 reader.onload = function(e) {
@@ -61,6 +58,18 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
             renderer.setVertexCnt(this['Vertex Cnt']);
             rerender();
         };
+
+        this['Author'] = function() {
+            openInNewTab('http://zhangwenli.com');
+        };
+
+        this['GitHub'] = function() {
+            openInNewTab('https://github.com/Ovilia/Polyvia');
+        };
+
+        this['Video Version'] = function() {
+            openInNewTab('video.html');
+        };
     };
     var config = new GuiConfig();
     var gui = new dat.GUI();
@@ -71,10 +80,12 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
         rerender();
     });
 
-    gui.add(config, 'Image URL', config['Image URL']);
     gui.add(config, 'Upload Image');
     gui.add(config, 'Render');
     gui.add(config, 'Wireframe');
+    gui.add(config, 'Video Version');
+    gui.add(config, 'Author');
+    gui.add(config, 'GitHub');
 
 
 
@@ -110,4 +121,9 @@ require(['GlRenderer', 'dat'], function(GlRenderer, dat) {
         var time = parseFloat((end - start) / 1000, 3);
         showMsg('Render time: ' + time + ' seconds');
     }
-});
+
+    function openInNewTab(url) {
+        var win = window.open(url, '_blank');
+        win.focus();
+    }
+})();
