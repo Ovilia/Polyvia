@@ -84,8 +84,8 @@
     gui.add(config, 'Render');
     gui.add(config, 'Wireframe');
     gui.add(config, 'Video Version');
-    gui.add(config, 'Author');
-    gui.add(config, 'GitHub');
+    // gui.add(config, 'Author');
+    // gui.add(config, 'GitHub');
 
 
 

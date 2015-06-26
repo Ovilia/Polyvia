@@ -22,7 +22,7 @@ html(lang="en")
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #22C3AA;
+            background-color: black;
             color: white;
             font-family: serif;
         }
@@ -58,28 +58,31 @@ html(lang="en")
   body
     canvas(id='canvas', width='0', height='0')
 
-    div(id='info')
-        h1 Polyvia
-        h3 Low-Poly Style Image & Video Processing
+    //- div(id='info')
+    //-     h1 Polyvia
+    //-     h3 Low-Poly Style Image & Video Processing
 
-        p
-            a(href='./image.html', target='_blank') Image Version
-        p
-            a(href='http://zhangwenli.com', target='_blank') About Author
-        p
-            a(href='http://github.com/Ovilia/Polyvia', target='_blank') View on GitHub
+    //-     p
+    //-         a(href='./image.html', target='_blank') Image Version
+    //-     p
+    //-         a(href='http://zhangwenli.com', target='_blank') About Author
+    //-     p
+    //-         a(href='http://github.com/Ovilia/Polyvia', target='_blank') View on GitHub
 
-    //- script(type='text/javascript', src='vendor/three.js')
-    //- script(type='text/javascript', src='vendor/three.CopyShader.js')
-    //- script(type='text/javascript', src='vendor/three.EdgeShader.js')
-    //- script(type='text/javascript', src='vendor/three.EffectComposer.js')
-    //- script(type='text/javascript', src='vendor/three.MaskPass.js')
-    //- script(type='text/javascript', src='vendor/three.RenderPass.js')
-    //- script(type='text/javascript', src='vendor/three.ShaderPass.js')
+    script(type='text/javascript', src='vendor/three.js')
+    script(type='text/javascript', src='vendor/three.js.CopyShader.js')
+    script(type='text/javascript', src='vendor/three.js.EdgeShader.js')
+    script(type='text/javascript', src='vendor/three.js.EffectComposer.js')
+    script(type='text/javascript', src='vendor/three.js.MaskPass.js')
+    script(type='text/javascript', src='vendor/three.js.RenderPass.js')
+    script(type='text/javascript', src='vendor/three.js.ShaderPass.js')
 
-    //- script(type='text/javascript', src='vendor/stats.min.js')
-    //- script(type='text/javascript', src='vendor/dat.gui.js')
-    //- script(type='text/javascript', src='vendor/delaunay.js')
+    script(type='text/javascript', src='vendor/stats.min.js')
+    script(type='text/javascript', src='vendor/dat.gui.js')
+    script(type='text/javascript', src='vendor/delaunay.js')
 
-    script(type='text/javascript', src='build/lib.js')
-    script(type='text/javascript', src='build/video.js')
+    script(type='text/javascript', src='src/js/GlRenderer.js')
+    script(type='text/javascript', src='src/js/video.js')
+
+    //- script(type='text/javascript', src='build/lib.js')
+    //- script(type='text/javascript', src='build/video.js')
