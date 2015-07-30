@@ -12,12 +12,12 @@
     });
 
     // event handling
-    window.onresize = function() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        renderer.resize();
-        rerender();
-    }
+    // window.onresize = function() {
+    //     canvas.width = window.innerWidth;
+    //     canvas.height = window.innerHeight;
+    //     renderer.resize();
+    //     rerender();
+    // }
 
 
 

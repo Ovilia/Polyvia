@@ -17,7 +17,7 @@ function GlRenderer(canvas, maxVertexCnt, isImg, imgPath, videoElement) {
 
     this.hasWireframe = false;
 
-    // window.renderer = this;
+    window.renderer = this;
 };
 
 
@@ -27,7 +27,7 @@ GlRenderer.prototype.init = function() {
         canvas: this.canvas,
         antialias: true
     });
-    this.renderer.setClearColor(0x0);
+    this.renderer.setClearColor(0xffffff);
 
     this.scene = new THREE.Scene();
     this.finalScene = new THREE.Scene();
@@ -56,7 +56,7 @@ GlRenderer.prototype.init = function() {
     // material for vertex wireframe
     this.wireframeMaterial = new THREE.MeshBasicMaterial({
         wireframe: true,
-        color: 0xffff00
+        color: 0xffffff
     });
     this.wireframeMesh = null;
 
@@ -246,6 +246,9 @@ GlRenderer.prototype.render = function(callback) {
         }
 
         that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
+        // for (var i = 4; i < that.maxVertexCnt; ++i) {
+        //     that.vertices.push([Math.random(), Math.random()]);
+        // }
         // append to vertex array
         var len = iw * ih;
         var loops = 0;
@@ -258,7 +261,7 @@ GlRenderer.prototype.render = function(callback) {
                     var y = that.lastSelected[xi][yi];
                     var id = y * iw + x;
                     var red = pixels[id * 4];
-                    if (red > 40 && Math.random() > 0.2) {
+                    if (red > 20 && Math.random() > 0.2) {
                         that._setThisSelected(xi, y);
                         that.vertices.push([x / iw, y / ih]);
                         ++i;
@@ -266,7 +269,7 @@ GlRenderer.prototype.render = function(callback) {
                 }
             }
         }
-        var edgeCnt = Math.floor(that.maxVertexCnt * 0.95);
+        var edgeCnt = Math.floor(that.maxVertexCnt * 0.9);
         var maxLoop = that.maxVertexCnt * 100;
         for (; i < edgeCnt && loops < maxLoop; ++i, ++loops) {
             var id = Math.floor(Math.random() * len);
@@ -298,6 +301,8 @@ GlRenderer.prototype.render = function(callback) {
 
         // calculate delaunay triangles
         that.triangles = Delaunay.triangulate(that.vertices);
+
+        // that.renderVertices(iw, ih);
 
         // render triangle meshes
         that.renderTriangles(iw, ih);
@@ -364,6 +369,32 @@ GlRenderer.prototype.renderTriangles = function(iw, ih) {
     this.finalScene.add(this.wireframeMesh);
 
     this.renderer.render(this.finalScene, this.camera);
+}
+
+
+
+// draw selected vertices only to the canvas
+GlRenderer.prototype.renderVertices = function(iw, ih) {
+    var vertices = this.vertices;
+    var iwn = 512;
+    var ihn = 512;
+
+    var canvas = document.createElement('canvas');
+    canvas.width = iwn;
+    canvas.height = ihn;
+    var srcCtx = canvas.getContext('2d');
+    srcCtx.fillStyle = "rgb(0, 0, 0)";
+    srcCtx.fillRect(0, 0, iwn, ihn);
+
+    srcCtx.fillStyle = "rgb(255, 255, 255)";
+    for (var i = 0, l = vertices.length; i < l; ++i) {
+        var x = Math.floor(vertices[i][0] * (iwn - 1)) - 1;
+        var y = Math.floor(vertices[i][1] * (ihn - 1)) - 1;
+        srcCtx.fillRect(x, y, 3, 3);
+    }
+
+    var url = canvas.toDataURL("image/png");
+    window.open(url, '_blank');
 }
 
 
