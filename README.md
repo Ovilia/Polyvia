@@ -2,6 +2,8 @@
 
 Low Poly Style Image and Video Processing
 
+详细算法参见[知乎回答：如何使用 JavaScript 生成 low-poly 风格图像？](http://www.zhihu.com/question/29856775/answer/57668656)
+
 ## Demo
 
 [Image Version](http://zhangwenli.com/Polyvia/image.html)  
