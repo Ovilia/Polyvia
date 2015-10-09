@@ -261,7 +261,7 @@ GlRenderer.prototype.render = function(callback) {
                     var y = that.lastSelected[xi][yi];
                     var id = y * iw + x;
                     var red = pixels[id * 4];
-                    if (red > 20 && Math.random() > 0.2) {
+                    if (red > 20) {
                         that._setThisSelected(xi, y);
                         that.vertices.push([x / iw, y / ih]);
                         ++i;
@@ -269,14 +269,14 @@ GlRenderer.prototype.render = function(callback) {
                 }
             }
         }
-        var edgeCnt = Math.floor(that.maxVertexCnt * 0.9);
+        var edgeCnt = Math.floor(that.maxVertexCnt * 1);
         var maxLoop = that.maxVertexCnt * 100;
         for (; i < edgeCnt && loops < maxLoop; ++i, ++loops) {
             var id = Math.floor(Math.random() * len);
             var x = id % iw;
             var y = Math.floor(id / iw);
             var red = pixels[id * 4];
-            if (red > 100 || red > Math.random() * 100) {
+            if (red > 100) {
                 // is a selected edge vertex
                 if (!that.isImg) {
                     that._setThisSelected(x, y);
