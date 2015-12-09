@@ -246,37 +246,50 @@ GlRenderer.prototype.render = function(callback) {
         }
 
         that.vertices = [[0, 0], [0, 1], [1, 0], [1, 1]];
-        // for (var i = 4; i < that.maxVertexCnt; ++i) {
+
+        // asm points
+        for (var aid = 0, alen = that.asmData.length / 2; aid < alen; ++aid) {
+            that.vertices.push([
+                that.asmData[aid * 2] / that.srcImg.width,
+                1 - that.asmData[aid * 2 + 1] / that.srcImg.height
+            ]);
+        }
+
+        // // random points
+        // var ranCnt = that.maxVertexCnt * 0.2;
+        // for (var i = 4; i < ranCnt; ++i) {
         //     that.vertices.push([Math.random(), Math.random()]);
         // }
+
         // append to vertex array
         var len = iw * ih;
         var loops = 0;
-        var i = 4;
-        // select those edges that in lastSelected
-        for (var xi in that.lastSelected) {
-            var x = parseInt(xi, 10);
-            if (that.lastSelected[xi] != undefined) {
-                for (var yi = that.lastSelected[xi].length; yi >= 0; --yi) {
-                    var y = that.lastSelected[xi][yi];
-                    var id = y * iw + x;
-                    var red = pixels[id * 4];
-                    if (red > 20) {
-                        that._setThisSelected(xi, y);
-                        that.vertices.push([x / iw, y / ih]);
-                        ++i;
-                    }
-                }
-            }
-        }
-        var edgeCnt = Math.floor(that.maxVertexCnt * 1);
+        // var i = 4;
+        // // select those edges that in lastSelected
+        // for (var xi in that.lastSelected) {
+        //     var x = parseInt(xi, 10);
+        //     if (that.lastSelected[xi] != undefined) {
+        //         for (var yi = that.lastSelected[xi].length; yi >= 0; --yi) {
+        //             var y = that.lastSelected[xi][yi];
+        //             var id = y * iw + x;
+        //             var red = pixels[id * 4];
+        //             if (red > 20) {
+        //                 that._setThisSelected(xi, y);
+        //                 that.vertices.push([x / iw, y / ih]);
+        //                 ++i;
+        //             }
+        //         }
+        //     }
+        // }
+        var edgeCnt = Math.floor(that.maxVertexCnt * 0.9);
         var maxLoop = that.maxVertexCnt * 100;
-        for (; i < edgeCnt && loops < maxLoop; ++i, ++loops) {
+        for (var i = that.vertices.length; i < edgeCnt && loops < maxLoop;
+                ++i, ++loops) {
             var id = Math.floor(Math.random() * len);
             var x = id % iw;
             var y = Math.floor(id / iw);
             var red = pixels[id * 4];
-            if (red > 100) {
+            if (red > 20) {
                 // is a selected edge vertex
                 if (!that.isImg) {
                     that._setThisSelected(x, y);
@@ -417,6 +430,16 @@ GlRenderer.prototype.resize = function() {
 // render origin image to get pixel color
 GlRenderer.prototype.preRender = function(callback) {
     if (this.isImg) {
+        var hasImageLoaded = false;
+        var hasAsmLoaded = false;
+        var checkCallback = function() {
+            if (hasAsmLoaded && hasImageLoaded) {
+                if (callback) {
+                    callback();
+                }
+            }
+        };
+
         // original image
         this.srcImg = new Image();
         this.srcImg.src = this.imgPath;
@@ -435,10 +458,15 @@ GlRenderer.prototype.preRender = function(callback) {
 
             that.render();
 
-            if (callback) {
-                callback();
-            }
+            that.hasImageLoaded = true;
+            checkCallback();
         };
+
+        // read asm data
+        this.getAsmPoints(function() {
+            that.hasAsmLoaded = true;
+            checkCallback();
+        });
     } else {
         // original video
         this.videoSrcCtx.drawImage(this.videoElement, 0, 0,
@@ -505,3 +533,30 @@ GlRenderer.prototype.getRenderSize = function(imgWidth, imgHeight) {
     };
     return this._renderSize;
 }
+
+GlRenderer.prototype.getAsmPoints = function(callback) {
+    // read data file
+    var xhr = new XMLHttpRequest();
+    var url = 'src/img/1.txt';
+    var that = this;
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4 && xhr.status == 200) {
+            var data = xhr.responseText.split(', ');
+            for (var did = 0, dlen = data.length; did < dlen; ++did) {
+                data[did] = parseInt(data[did], 10);
+                if (did % 2 === 1) {
+                    var tmp = data[did];
+                    data[did] = data[did - 1];
+                    data[did - 1] = tmp;
+                }
+            }
+            that.asmData = data;
+            if (callback) {
+                callback(data);
+            }
+        }
+    };
+    xhr.open('GET', url, true);
+    xhr.setRequestHeader('Content-type', 'text/html');
+    xhr.send();
+};

@@ -1,5 +1,5 @@
 (function () {
-    var img = './src/img/3.jpg';
+    var img = './src/img/asm1.jpg';
     var canvas = document.getElementById('canvas');
 
     // init canvas width to that of window
@@ -7,7 +7,7 @@
     canvas.height = window.innerHeight;
 
     var start = new Date();
-    var renderer = new GlRenderer(canvas, 2000, true, img, function() {
+    var renderer = new GlRenderer(canvas, 800, true, img, function() {
         renderTime(start);
     });
 
@@ -47,7 +47,7 @@
             input.click();
         };
 
-        this['Vertex Cnt'] = 2000;
+        this['Vertex Cnt'] = 800;
 
         this['Wireframe'] = function() {
             hasWireframe = !hasWireframe;
