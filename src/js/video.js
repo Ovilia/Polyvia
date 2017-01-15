@@ -10,10 +10,10 @@
     var renderer = null;
 
     // align top-left
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.left = '0px';
-    stats.domElement.style.top = '0px';
-    document.body.appendChild(stats.domElement);
+    // stats.domElement.style.position = 'absolute';
+    // stats.domElement.style.left = '0px';
+    // stats.domElement.style.top = '0px';
+    // document.body.appendChild(stats.domElement);
 
     // local video
     var video = document.createElement('video');
@@ -38,7 +38,7 @@
                     //         - this.videoWidth) / 2) + 'px';
                 }
 
-                renderer = new GlRenderer(canvas, 4000, false, video, this);
+                renderer = new GlRenderer(canvas, 3000, false, video, this);
                 renderFrame();
             };
             video.load();
@@ -50,11 +50,11 @@
     }
 
     function renderFrame() {
-        stats.begin();
+        // stats.begin();
 
         renderer.render();
 
-        stats.end();
+        // stats.end();
 
         requestAnimationFrame(renderFrame);
     }

@@ -31,9 +31,9 @@ GlRenderer.prototype.init = function() {
 
     this.scene = new THREE.Scene();
     this.finalScene = new THREE.Scene();
-    
+
     this.camera = new THREE.OrthographicCamera(-this.canvas.width / 2,
-            this.canvas.width / 2, this.canvas.height / 2, 
+            this.canvas.width / 2, this.canvas.height / 2,
             -this.canvas.height / 2, 0, 10);
     this.camera.position.set(0, 0, 5);
     this.scene.add(this.camera);
@@ -84,13 +84,13 @@ GlRenderer.prototype.init = function() {
         this.videoImageContext = this.videoImage.getContext('2d');
         // background color if no video present
         this.videoImageContext.fillStyle = '#000000';
-        this.videoImageContext.fillRect(0, 0, this.videoImage.width, 
+        this.videoImageContext.fillRect(0, 0, this.videoImage.width,
             this.videoImage.height);
 
         this.videoTexture = new THREE.Texture(this.videoImage);
         this.videoTexture.minFilter = THREE.LinearFilter;
         this.videoTexture.magFilter = THREE.LinearFilter;
-        
+
         var videoMaterial = new THREE.MeshBasicMaterial({
             map: this.videoTexture,
             overdraw: true
@@ -278,20 +278,20 @@ GlRenderer.prototype.render = function(callback) {
                 if (!that.isImg) {
                     that._setThisSelected(x, y);
                 }
-                
+
                 that.vertices.push([x / iw, y / ih]);
             } else {
                 --i;
             }
         }
-        
+
         for (; i < that.maxVertexCnt; ++i) {
             // randomly selected vertices will not push to thisSelected
             var rx = Math.random();
             var ry = Math.random();
             that.vertices.push([rx, ry]);
             if (!that.isImg) {
-                that._setThisSelected(Math.floor(rx * iw), 
+                that._setThisSelected(Math.floor(rx * iw),
                         Math.floor(ry * ih));
             }
         }
