@@ -24,7 +24,7 @@
         navigator.getUserMedia({
             video: true
         }, function (stream) {
-            video.src = window.URL.createObjectURL(stream);
+            video.srcObject = stream;
             video.onloadedmetadata = function(e) {
                 video.play();
 
@@ -34,7 +34,7 @@
                     canvas.height = this.videoHeight;
 
                     // var info = document.getElementById('info');
-                    // info.style.width = Math.floor((window.innerWidth 
+                    // info.style.width = Math.floor((window.innerWidth
                     //         - this.videoWidth) / 2) + 'px';
                 }
 
