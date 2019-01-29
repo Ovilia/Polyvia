@@ -6,8 +6,8 @@ Low Poly Style Image and Video Processing
 
 ## Demo
 
-[Image Version](http://zhangwenli.com/Polyvia/image.html)  
-[Video Version](http://zhangwenli.com/Polyvia/video.html)
+[Image Version](https://umeecorn.com/Polyvia/image.html)
+[Video Version](https://umeecorn.com/Polyvia/video.html)
 
 The video version uses Webcam to get video from your local camera. Be sure to allow it to do so.
 
@@ -37,4 +37,4 @@ The video version uses Webcam to get video from your local camera. Be sure to al
 
 ![](https://raw.githubusercontent.com/Ovilia/Polyvia/gh-pages/src/img/6.jpg)
 
-[Try out by yourself!](http://zhangwenli.com/Polyvia/image.html)
+[Try out by yourself!](https://umeecorn.com/Polyvia/image.html)
